@@ -13,10 +13,21 @@ namespace Api.Controllers.Base
     public class ApiBaseController : ControllerBase
     {
         protected IAccountSignalRClient accountSignalRClient;
+        protected IDataSpaceSignalRClient dataSpaceSignalRClient;
 
         public ApiBaseController(IAccountSignalRClient accountSignalRClient)
         {
             this.accountSignalRClient = accountSignalRClient;
+        }
+
+        public ApiBaseController(IDataSpaceSignalRClient dataSpaceSignalRClient)
+        {
+            this.dataSpaceSignalRClient = dataSpaceSignalRClient;
+        }
+
+        public ApiBaseController()
+        {
+
         }
     }
 }

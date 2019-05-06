@@ -1,10 +1,8 @@
-﻿using Api.SignalR.ClientServices;
-using Microsoft.AspNetCore.SignalR.Client;
-using Ping.Commons.Dtos.Models.Various;
+﻿using Microsoft.AspNetCore.SignalR.Client;
 using System;
 using System.Threading.Tasks;
 
-namespace Api.SignalR
+namespace Api.SignalR.ClientServices.Impl
 {
     public class AccountSignalRClient : BaseServiceClient, IAccountSignalRClient
     {

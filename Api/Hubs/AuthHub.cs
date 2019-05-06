@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -13,9 +14,9 @@ namespace Api.Hubs
 {
     public class AuthHub : Hub
     {
-        public Task FileReceivedTest(string test)
+        public Task FileReceivedTest(byte[] x)
         {
-            return Clients.All.SendAsync("FileReceivedTest", test);
+            return Clients.All.SendAsync("FileReceivedTest", x);
         }
         public ChannelReader<int> DelayCounter(int delay)
         {
@@ -23,7 +24,7 @@ namespace Api.Hubs
 
             //Task.Run(() => WriteItems(channel.Writer, 20, delay));
             //Task run = WriteItems(channel.Writer, 20, delay));
-            _ = WriteItems(channel.Writer, 20, delay));
+            _ = WriteItems(channel.Writer, 20, delay);
 
             return channel.Reader;
         }

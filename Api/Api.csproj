@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\DataSpace\eldarja\" />
     <Folder Include="wwwroot\Users\Avatars\" />
     <Folder Include="wwwroot\Users\Covers\" />
   </ItemGroup>

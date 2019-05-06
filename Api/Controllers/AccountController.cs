@@ -28,7 +28,7 @@ namespace Api.Controllers
         [HttpPost]
         [Route("profile/cover")]
         [HttpPost]
-        public IActionResult CoverUpload([FromBody] ImageUploadRequest request)
+        public IActionResult CoverUpload([FromBody] ImageUploadRequest request) // TODO: Chance ImageUploadRequest to integrate IFormFile
         {
             if (request.PhoneNumber == null || !(request.PhoneNumber.Length > 0))
             {

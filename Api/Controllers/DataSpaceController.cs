@@ -1,0 +1,199 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Api.Controllers.Base;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
+using Microsoft.Extensions.Primitives;
+using Api.Filters.ControllerAttributes;
+using System.Net;
+using System.Net.Http;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.FileProviders;
+using Api.SignalR.ClientServices;
+using Ping.Commons.Dtos.Models.DataSpace;
+
+namespace Api.Controllers
+{
+    [Route("api/dataspace")]
+    [ApiController]
+    public class DataSpaceController : ApiBaseController
+    {
+        private readonly IHostingEnvironment appEnv;
+
+        public DataSpaceController(IHostingEnvironment hostingEnvironment, IDataSpaceSignalRClient dataSpaceSignalRClient)
+            : base(dataSpaceSignalRClient)
+        {
+            appEnv = hostingEnvironment;
+        }
+
+        [Route("{username}/files/{filename}")]
+        [HttpGet]
+        public IActionResult Download([FromRoute] string username, [FromRoute] string filename)
+        {
+            string filePath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, filename));
+            string acceptHeader = Request.Headers["Accept"];
+
+            var provider = new FileExtensionContentTypeProvider();
+            string contentType;
+            if (!provider.TryGetContentType(filePath, out contentType) || acceptHeader.Equals("application/octet-stream"))
+            {
+                contentType = "application/octet-stream";
+            }
+
+            return File(System.IO.File.OpenRead(filePath), contentType);
+        }
+        
+        // TODO - DONE: read a json string from byte[] into a string and write as a .txt file (System.IO.Write)
+        //      - DONE: write a picture or document as byte[] into a file (System.IO.Write)
+        //      - DONE: convert the receiving stream into another stream and write into a file, instead of loading the entire byte[] into memory
+        //      - check memory usage for above scenarios and: MultipartForm, IFormFile, Request.Body.ReadAsync (stream)
+        //      - handle multiple files
+        //      - check MultipartForm
+        //      - check axios:stream
+
+        // POST: api/dataspace/eldar/files
+        [Route("{username}/files")]
+        [HttpPost]
+        [DisableRequestSizeLimit]
+        [DisableFormValueModelBinding]
+        public async Task<IActionResult> Upload([FromRoute] string username)
+        {
+            string requestContentType = Request.ContentType;
+            bool hasFormContentType = Request.HasFormContentType;
+
+            string fileName = "";
+            string UploadsDir = "";
+            string targetWritePath = "";
+
+            // Accumulate all form key-value pairs in the request (in case we want to do something with other form-fields that are not only files)
+            KeyValueAccumulator formAccumulator = new KeyValueAccumulator();
+            Dictionary<string, string> sectionDictionary = new Dictionary<string, string>();
+
+            // get off the boundary appended by the form-post
+            string boundary = GetBoundary(Request.ContentType);
+
+            try
+            {
+                var reader = new MultipartReader(boundary, Request.Body);
+                MultipartSection section = null;
+
+                section = await reader.ReadNextSectionAsync();
+                while (section != null)
+                {
+                    // Get the conten header disposition for checking if we are handling a file-form-field or just any other type of field
+                    ContentDispositionHeaderValue contentDisposition;
+                    var hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
+
+                    if (hasContentDispositionHeader)
+                    {
+                        if (contentDisposition.IsFileDisposition())
+                        {
+                            // Here we handle file fields
+                            fileName = contentDisposition.FileName.ToString().Replace(" ","");
+                            UploadsDir = Path.Combine(appEnv.WebRootPath, $"dataspace/{username}");
+
+                            // If the dir doesn't exist, create it
+                            Directory.CreateDirectory(UploadsDir);
+
+                            targetWritePath = Path.Combine(UploadsDir, fileName); // Prepare file name and path for writing
+
+                            //// We can also use a temp location for now eg. AppData on Windows
+                            //var targetFilePath = Path.GetTempFileName();
+
+                            // Createa a stream and write the request (section-field) body/data
+                            using (var targetStream = System.IO.File.Create(targetWritePath))
+                            {
+                                await section.Body.CopyToAsync(targetStream);
+                            }
+                        }
+                        else if (contentDisposition.IsFormDisposition())
+                        {
+                            // Here we handle other fields
+                            StringSegment fieldName = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
+
+                            FormMultipartSection formMultipartSection = section.AsFormDataSection();
+                            string fieldValue = await formMultipartSection.GetValueAsync().ConfigureAwait(false);
+
+                            sectionDictionary.Add(formMultipartSection.Name, fieldValue);
+
+                            using (var streamReader = new StreamReader(section.Body))
+                            {
+                                if (String.Equals(fieldValue, "undefined", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    fieldValue = String.Empty;
+                                }
+                                formAccumulator.Append(fieldName.ToString(), fieldValue);
+                            }
+
+                        }
+                    }
+
+                    // Read next section/field
+                    section = await reader.ReadNextSectionAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                // handle any unread or errors on errors while streaming and writing received data
+                return BadRequest();
+            }
+
+            //// Handle all the non-file fields either here, or above while reading the streams already eg. chosen parent directory
+            //var result = sectionDictionary;
+            //var frmResults = formAccumulator.GetResults();
+
+
+            // TODO: Generate metadata and save the path into a FileMicroservice with SignalR (db handler)
+
+            // save the url
+            var appId = Request.Headers["AppId"];
+            var phonenumber = Request.Headers["OwnerPhoneNumber"];
+            var firstname = Request.Headers["OwnerFirstName"];
+            var lastname = Request.Headers["OwnerLastName"];
+            FileUploadDto newFile = new FileUploadDto
+            {
+                OwnerFirstname = firstname,
+                OwnerLastname = lastname,
+                OwnerPhoneNumber = phonenumber,
+                FilePath = targetWritePath,
+                FileName = fileName
+            };
+
+            dataSpaceSignalRClient.SaveFileMetadata(appId, newFile);
+
+            return Ok();
+        }
+
+        private string GetBoundary(string contentType)
+        {
+            if (contentType == null)
+            {
+                throw new ArgumentNullException(nameof(contentType));
+            }
+            string boundary = contentType;
+            try
+            {
+                string[] elements = contentType.Split(' ');
+                string element = elements.First(entry => entry.StartsWith("boundary="));
+                boundary = element.Substring("boundary=".Length);
+            }
+            catch (Exception)
+            {
+
+            }
+
+            return HeaderUtilities.RemoveQuotes(boundary).Value;
+        }
+    }
+}
