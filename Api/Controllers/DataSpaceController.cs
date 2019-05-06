@@ -72,6 +72,11 @@ namespace Api.Controllers
             string requestContentType = Request.ContentType;
             bool hasFormContentType = Request.HasFormContentType;
 
+            var appId = Request.Headers["AppId"];
+            var phonenumber = Request.Headers["OwnerPhoneNumber"];
+            var firstname = Request.Headers["OwnerFirstName"];
+            var lastname = Request.Headers["OwnerLastName"];
+
             string fileName = "";
             string UploadsDir = "";
             string targetWritePath = "";
@@ -114,7 +119,23 @@ namespace Api.Controllers
                             // Createa a stream and write the request (section-field) body/data
                             using (var targetStream = System.IO.File.Create(targetWritePath))
                             {
+                                // Copy file to disk
                                 await section.Body.CopyToAsync(targetStream);
+
+
+                                // TODO: Generate metadata and save the path into a FileMicroservice with SignalR (db handler)
+                                // save the url
+                                FileUploadDto newFile = new FileUploadDto
+                                {
+                                    OwnerFirstname = firstname,
+                                    OwnerLastname = lastname,
+                                    OwnerPhoneNumber = phonenumber,
+                                    FilePath = targetWritePath,
+                                    FileName = fileName,
+                                    MimeType = section.ContentType
+                                };
+
+                                dataSpaceSignalRClient.SaveFileMetadata(appId, newFile);
                             }
                         }
                         else if (contentDisposition.IsFormDisposition())
@@ -152,25 +173,6 @@ namespace Api.Controllers
             //// Handle all the non-file fields either here, or above while reading the streams already eg. chosen parent directory
             //var result = sectionDictionary;
             //var frmResults = formAccumulator.GetResults();
-
-
-            // TODO: Generate metadata and save the path into a FileMicroservice with SignalR (db handler)
-
-            // save the url
-            var appId = Request.Headers["AppId"];
-            var phonenumber = Request.Headers["OwnerPhoneNumber"];
-            var firstname = Request.Headers["OwnerFirstName"];
-            var lastname = Request.Headers["OwnerLastName"];
-            FileUploadDto newFile = new FileUploadDto
-            {
-                OwnerFirstname = firstname,
-                OwnerLastname = lastname,
-                OwnerPhoneNumber = phonenumber,
-                FilePath = targetWritePath,
-                FileName = fileName
-            };
-
-            dataSpaceSignalRClient.SaveFileMetadata(appId, newFile);
 
             return Ok();
         }

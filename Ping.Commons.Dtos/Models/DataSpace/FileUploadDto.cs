@@ -11,6 +11,7 @@ namespace Ping.Commons.Dtos.Models.DataSpace
         public string OwnerLastname { get; set; }
         public string FilePath { get; set; }
         public string FileName { get; set; }
+        public string MimeType { get; set; }
         public DateTime CreationTime { get; set; } = DateTime.Now;
         public DateTime LastModifiedTime { get; set; } = DateTime.Now;
         public DateTime LastAccessTime { get; set; } = DateTime.Now;
