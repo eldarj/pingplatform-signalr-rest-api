@@ -77,9 +77,12 @@ namespace Api.Hubs
             }
         }
 
-        public Task RegistrationDone(string appId, AccountDto request)
+        public void RegistrationDone(string appId, AccountDto request)
         {
-            return Clients.All.SendAsync($"RegistrationDone{appId}", request);
+            // TODO: add an "Internal" group that will dispatch messages to Microservices within our platform only
+            Clients.Group("dataspaceMicroservice").SendAsync("RegistrationDone", request);
+            // TODO: change this so we only apply it to one user (don't use appId, but Clients.User which requires Auth. impl.)
+            Clients.All.SendAsync($"RegistrationDone{appId}", request);
         }
 
         public Task RegistrationFailed(string appId, string reasonMsg)
