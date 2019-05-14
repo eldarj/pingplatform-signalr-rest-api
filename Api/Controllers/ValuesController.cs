@@ -12,14 +12,24 @@ namespace Api.Controllers
     [ApiController]
     public class ValuesController : ControllerBase
     {
+
+        private const string NullIpAddress = "::1";
+
         // GET api/values
         [HttpGet]
         public IActionResult Get()
         {
             //AccountServiceClient serviceClient = new AccountServiceClient();
             //String pox = await serviceClient.GetAccounts<String>();
+            var connection = Request.HttpContext.Connection;
+            var address = connection.RemoteIpAddress;
+            var remote = address != null && address.ToString() != NullIpAddress;
 
-            return Ok(new string[] { "value1", "value2" });
+            var local = connection.LocalIpAddress;
+
+            //return Ok(new string[] { "value1", "value2" });
+            //return Ok(address.ToString());
+            return Ok(local.ToString());
         }
 
         // GET api/values/5

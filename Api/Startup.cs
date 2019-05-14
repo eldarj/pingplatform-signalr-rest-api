@@ -42,6 +42,7 @@ namespace Api
             {
                 builder
                 .AllowAnyHeader()
+                .AllowAnyMethod()
                 .WithOrigins(MicroservicesAllowedOrigins)
                 .AllowCredentials();
             }));

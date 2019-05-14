@@ -37,9 +37,48 @@ namespace Api.Controllers
             appEnv = hostingEnvironment;
         }
 
+        [Route("{username}/directories")]
+        [HttpPost]
+        public IActionResult CreateDirectory([FromRoute] string username, [FromBody] DirectoryDto directoryDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            // TODO: Check for what is 'Path' used and introduce new property 'Url'
+            string path;
+            if (String.IsNullOrWhiteSpace(directoryDto.Path))
+            {
+                path = Path.Combine(appEnv.WebRootPath, 
+                    String.Format(@"dataspace/{0}/{1}", username, directoryDto.DirName)); // TODO FIX THIS AND ADD URL FIELD TO DTO MODEL
+                directoryDto.Path = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/{directoryDto.DirName}";
+            }
+            else
+            {
+                path = Path.Combine(appEnv.WebRootPath, 
+                    String.Format(@"dataspace/{0}/{1}/{2}", username, directoryDto.Path, directoryDto.DirName));
+                directoryDto.Path = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/{directoryDto.Path}/{directoryDto.DirName}";
+            }
+
+
+            var appId = Request.Headers["AppId"];
+            var phonenumber = Request.Headers["OwnerPhoneNumber"];
+
+            if (System.IO.Directory.Exists(directoryDto.Path))
+            {
+                return BadRequest();
+            }
+
+            System.IO.Directory.CreateDirectory(path);
+
+            dataSpaceSignalRClient.SaveDirectoryMetadata(appId, phonenumber, directoryDto);
+            return Ok();
+        }
+
         [Route("{username}/files/{filename}")]
         [HttpGet]
-        public IActionResult Download([FromRoute] string username, [FromRoute] string filename)
+        public IActionResult DownloadFile([FromRoute] string username, [FromRoute] string filename)
         {
             string filePath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, filename));
             string acceptHeader = Request.Headers["Accept"];
@@ -53,7 +92,30 @@ namespace Api.Controllers
 
             return File(System.IO.File.OpenRead(filePath), contentType);
         }
-        
+
+        // TODO - Delete file from filesystem and sendout a SignalR event to the hub, for DataSpaceMicroservice, to delete db metadata
+        [Route("{username}/files/{filename}")]
+        [HttpDelete]
+        public IActionResult DeleteFile([FromRoute] string username, [FromRoute] string filename)
+        {
+            string filePath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, filename));
+            var appId = Request.Headers["AppId"];
+            var phonenumber = Request.Headers["OwnerPhoneNumber"];
+            
+            // We won't check whether the file exists on filesystem, because we want to delete any metadata from DB anyway
+            try
+            {
+                System.IO.File.Delete(filePath);
+            }
+            catch (Exception e)
+            {
+                return BadRequest();
+            }
+
+            dataSpaceSignalRClient.DeleteFileMetadata(appId, phonenumber, filename);
+            return NoContent();
+        }
+
         // TODO - DONE: read a json string from byte[] into a string and write as a .txt file (System.IO.Write)
         //      - DONE: write a picture or document as byte[] into a file (System.IO.Write)
         //      - DONE: convert the receiving stream into another stream and write into a file, instead of loading the entire byte[] into memory
@@ -62,12 +124,12 @@ namespace Api.Controllers
         //      - check MultipartForm
         //      - check axios:stream
 
-        // POST: api/dataspace/eldar/files
+            // POST: api/dataspace/eldar/files
         [Route("{username}/files")]
         [HttpPost]
         [DisableRequestSizeLimit]
         [DisableFormValueModelBinding]
-        public async Task<IActionResult> Upload([FromRoute] string username)
+        public async Task<IActionResult> UploadFile([FromRoute] string username)
         {
             string requestContentType = Request.ContentType;
             bool hasFormContentType = Request.HasFormContentType;
@@ -130,7 +192,7 @@ namespace Api.Controllers
                                     OwnerFirstname = firstname,
                                     OwnerLastname = lastname,
                                     OwnerPhoneNumber = phonenumber,
-                                    FilePath = targetWritePath,
+                                    FilePath = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/{fileName}",
                                     FileName = fileName,
                                     MimeType = section.ContentType
                                 };
