@@ -68,6 +68,9 @@ namespace Api.Controllers
         }
 
 
+        // DELETE: eldarja/directories/dir1/dir2/mydir/mysubdir/.../dirToBeDeleted
+        //  -- Note: directoryPath INCLUDES the name of directory to be deleted
+        //  ---- Reason: Unlike the (POST) Create endpoint, we don't have a Dto model in a request-body here, and that's ok - we shouldn't
         [Route("{username}/directories/{*directoryPath}")]
         [HttpDelete]
         public IActionResult DeleteDirectory([FromRoute] string username, [FromRoute] string directoryPath)
@@ -81,7 +84,8 @@ namespace Api.Controllers
             var appId = Request.Headers["AppId"];
             var phonenumber = Request.Headers["OwnerPhoneNumber"];
 
-            // ((( NOT TRUE: we have a try/catch ))) We won't check whether the file exists on filesystem, because we want to delete any metadata from DB anyway
+            // ((( COMMENT BELOW IS NOT TRUE: we have a try/catch block ))) 
+            // We won't check whether the file exists on filesystem, because we want to delete any metadata from DB anyway
             try
             {
                 System.IO.Directory.Delete(physicalPath);
