@@ -8,6 +8,7 @@ using Api.SignalR.ClientServices;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Ping.Commons.Dtos.Models.DataSpace;
 
 namespace Api.Controllers
 {
@@ -40,18 +41,20 @@ namespace Api.Controllers
             {
                 physicalPath = Path.Combine(appEnv.WebRootPath,
                     String.Format(@"dataspace/{0}/{1}", username, directoryDto.DirName)); // TODO FIX THIS AND ADD URL FIELD TO DTO MODEL
-                directoryDto.Path = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/{directoryDto.DirName}";
+                directoryDto.Url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/directories/{directoryDto.DirName}";
+                directoryDto.Path = "";
             }
             else
             {
                 physicalPath = Path.Combine(appEnv.WebRootPath,
                     String.Format(@"dataspace/{0}/{1}/{2}", username, directoryPath, directoryDto.DirName));
-                directoryDto.Path = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/{directoryPath}/{directoryDto.DirName}";
+                directoryDto.Url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/directories/{directoryPath}/{directoryDto.DirName}";
+                directoryDto.Path = directoryPath;
             }
 
 
             var appId = Request.Headers["AppId"];
-            var phonenumber = Request.Headers["OwnerPhoneNumber"];
+            var phonenumber = Request.Headers["OwnerPhoneNumber"]; // Remove this and use Authentication and User obj.
 
             if (System.IO.Directory.Exists(directoryDto.Path))
             {
