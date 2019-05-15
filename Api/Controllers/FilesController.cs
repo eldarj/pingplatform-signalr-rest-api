@@ -90,23 +90,14 @@ namespace Api.Controllers
         //      - check axios:stream
 
         // POST: api/dataspace/eldar/files
-        [Route("{username}/files")]
+        [Route("{username}/files/{*directoryPath}")]
         [HttpPost]
         [DisableRequestSizeLimit]
         [DisableFormValueModelBinding]
-        public async Task<IActionResult> UploadFile([FromRoute] string username)
+        public async Task<IActionResult> UploadFile([FromRoute] string username, [FromRoute] string directoryPath)
         {
-            string requestContentType = Request.ContentType;
-            bool hasFormContentType = Request.HasFormContentType;
-
-            var appId = Request.Headers["AppId"];
-            var phonenumber = Request.Headers["OwnerPhoneNumber"];
-            var firstname = Request.Headers["OwnerFirstName"];
-            var lastname = Request.Headers["OwnerLastName"];
-
-            string fileName = "";
-            string UploadsDir = "";
-            string writePath = "";
+            //string requestContentType = Request.ContentType;
+            //bool hasFormContentType = Request.HasFormContentType;
 
             // Accumulate all form key-value pairs in the request (in case we want to do something with other form-fields that are not only files)
             KeyValueAccumulator formAccumulator = new KeyValueAccumulator();
@@ -115,7 +106,7 @@ namespace Api.Controllers
             // get off the boundary appended by the form-post
             string boundary = GetBoundary(Request.ContentType);
 
-            try
+            try // FIX THIS HUGE TRY BLOCK
             {
                 var reader = new MultipartReader(boundary, Request.Body);
                 MultipartSection section = null;
@@ -131,20 +122,38 @@ namespace Api.Controllers
                     {
                         if (contentDisposition.IsFileDisposition())
                         {
-                            // Here we handle file fields
-                            fileName = contentDisposition.FileName.ToString().Replace(" ","");
-                            UploadsDir = Path.Combine(appEnv.WebRootPath, $"dataspace/{username}");
+                            // Fetch data from header (Delete this after we implement authentication)
+                            var appId = Request.Headers["AppId"];
+                            var phonenumber = Request.Headers["OwnerPhoneNumber"];
+                            var firstname = Request.Headers["OwnerFirstName"];
+                            var lastname = Request.Headers["OwnerLastName"];
 
-                            // If the dir doesn't exist, create it
+                            // Here we handle file fields
+                            string fileName = contentDisposition.FileName.ToString().Replace(" ","");
+                            string UploadsDir = Path.Combine(appEnv.WebRootPath, $"dataspace/{username}");
+
+                            // If the BASE dir doesn't exist, create it
                             Directory.CreateDirectory(UploadsDir);
 
-                            writePath = Path.Combine(UploadsDir, fileName); // Prepare file name and path for writing
+                            string physicalPath;
+                            string url;
+                            // Check for subdir
+                            if (String.IsNullOrWhiteSpace(directoryPath))
+                            {
+                                physicalPath = Path.Combine(UploadsDir, fileName); // Prepare file name and path for writing
+                                url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/files/{fileName}";
+                            }
+                            else
+                            {
+                                physicalPath = Path.Combine(UploadsDir, directoryPath, fileName); // Prepare file name and path for writing
+                                url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/files/{directoryPath}/{fileName}";
+                            }
 
                             //// We can also use a temp location for now eg. AppData on Windows
                             //var targetFilePath = Path.GetTempFileName();
 
                             // Createa a stream and write the request (section-field) body/data
-                            using (var targetStream = System.IO.File.Create(writePath))
+                            using (var targetStream = System.IO.File.Create(physicalPath))
                             {
                                 // Copy file to disk
                                 await section.Body.CopyToAsync(targetStream);
@@ -154,21 +163,22 @@ namespace Api.Controllers
                                 // save the url
                                 FileUploadDto newFile = new FileUploadDto
                                 {
+                                    FileName = fileName,
+                                    OwnerPhoneNumber = phonenumber,
                                     OwnerFirstname = firstname,
                                     OwnerLastname = lastname,
-                                    OwnerPhoneNumber = phonenumber,
-                                    FilePath = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/{fileName}",
-                                    Url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/{fileName}",
-                                    FileName = fileName,
-                                    MimeType = section.ContentType
+                                    MimeType = section.ContentType,
+                                    FilePath = directoryPath,
+                                    Url = url
                                 };
 
-                                dataSpaceSignalRClient.SaveFileMetadata(appId, newFile);
+                                dataSpaceSignalRClient.SaveFileMetadata(appId, phonenumber, newFile); // rename stuff like this to nodePath
                             }
                         }
                         else if (contentDisposition.IsFormDisposition())
                         {
-                            // Here we handle other fields
+                            // Remove this (?)
+                            // Here we handle other form fields
                             StringSegment fieldName = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
 
                             FormMultipartSection formMultipartSection = section.AsFormDataSection();
@@ -187,7 +197,6 @@ namespace Api.Controllers
 
                         }
                     }
-
                     // Read next section/field
                     section = await reader.ReadNextSectionAsync();
                 }
@@ -198,6 +207,7 @@ namespace Api.Controllers
                 return BadRequest();
             }
 
+            //// Remove this (?)
             //// Handle all the non-file fields either here, or above while reading the streams already eg. chosen parent directory
             //var result = sectionDictionary;
             //var frmResults = formAccumulator.GetResults();

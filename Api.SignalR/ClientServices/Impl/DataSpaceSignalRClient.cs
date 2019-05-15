@@ -39,9 +39,9 @@ namespace Api.SignalR.ClientServices.Impl
             }
         }
 
-        public void SaveFileMetadata(string appId, FileUploadDto fileUploadDto)
+        public void SaveFileMetadata(string appId, string phonenumber, FileUploadDto fileUploadDto)
         {
-            Connection.SendAsync("SaveFileMetadata", appId, fileUploadDto);
+            Connection.SendAsync("SaveFileMetadata", appId, phonenumber, fileUploadDto);
         }
 
         public void DeleteFileMetadata(string appId, string phonenumber, string filename)
@@ -54,9 +54,9 @@ namespace Api.SignalR.ClientServices.Impl
             Connection.SendAsync("DeleteDirectoryMetadata", appId, phoneNumber, directoryPath);
         }
 
-        public void SaveDirectoryMetadata(string appId, string phonenumber, DirectoryDto dirname)
+        public void SaveDirectoryMetadata(string appId, string phonenumber, DirectoryDto directoryDto)
         {
-            Connection.SendAsync("SaveDirectoryMetadata", appId, phonenumber, dirname);
+            Connection.SendAsync("SaveDirectoryMetadata", appId, phonenumber, directoryDto);
         }
     }
 }
