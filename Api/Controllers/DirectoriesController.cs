@@ -25,7 +25,7 @@ namespace Api.Controllers
         }
 
         // POST: eldarja/directories/?dir1/dir2/mydir/mysubdir...
-
+        //  -- Note: directoryPath does NOT include the name of directory to be created
         [Route("{username}/directories/{*directoryPath}")]
         [HttpPost]
         public IActionResult CreateDirectory([FromRoute] string username, [FromRoute] string directoryPath, [FromBody] DirectoryDto directoryDto)
@@ -56,7 +56,7 @@ namespace Api.Controllers
             var appId = Request.Headers["AppId"];
             var phonenumber = Request.Headers["OwnerPhoneNumber"]; // Remove this and use Authentication and User obj.
 
-            if (System.IO.Directory.Exists(directoryDto.Path))
+            if (System.IO.Directory.Exists(directoryDto.Path + '/' + directoryDto.DirName))
             {
                 return BadRequest();
             }
