@@ -26,7 +26,7 @@ namespace Api.Hubs
         }
 
         // TODO, return metadata not only response-string
-        public Task SaveDirectoryMetadataSuccess(string appId, DirectoryDto dirDto)
+        public Task SaveDirectoryMetadataSuccess(string appId, NodeDto dirDto)
         {
             return Clients.All.SendAsync($"SaveDirectoryMetadataSuccess{appId}", dirDto);
         }
@@ -34,6 +34,26 @@ namespace Api.Hubs
         public Task SaveDirectoryMetadataFail(string appId, string reasonMsg)
         {
             return Clients.All.SendAsync($"SaveDirectoryMetadataFail{appId}", reasonMsg);
+        }
+        public Task DeleteDirectoryMetadata(string appId, string phoneNumber, string directoryPath)
+        {
+            if (Clients.Group("dataspaceMicroservice") != null)
+            {
+                return Clients.Group("dataspaceMicroservice").SendAsync("DeleteDirectoryMetadata", appId, phoneNumber, directoryPath);
+            }
+            else
+            {
+                return Clients.All.SendAsync("DeleteDirectoryMetadata", appId, phoneNumber, directoryPath);
+            }
+        }
+        public Task DeleteDirectoryMetadataSuccess(string appId, string directoryPath)
+        {
+            return Clients.All.SendAsync($"DeleteDirectoryMetadataSuccess{appId}", directoryPath);
+        }
+
+        public Task DeleteDirectoryMetadataFail(string appId, string directoryPath, string reasonMsg)
+        {
+            return Clients.All.SendAsync($"DeleteDirectoryMetadataFail{appId}", directoryPath, reasonMsg);
         }
         #endregion
 

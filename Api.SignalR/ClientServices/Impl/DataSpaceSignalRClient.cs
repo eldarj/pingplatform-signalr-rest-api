@@ -49,6 +49,11 @@ namespace Api.SignalR.ClientServices.Impl
             Connection.SendAsync("DeleteFileMetadata", appId, phonenumber, filename);
         }
 
+        public void DeleteDirectoryMetadata(string appId, string phoneNumber, string directoryPath)
+        {
+            Connection.SendAsync("DeleteDirectoryMetadata", appId, phoneNumber, directoryPath);
+        }
+
         public void SaveDirectoryMetadata(string appId, string phonenumber, DirectoryDto dirname)
         {
             Connection.SendAsync("SaveDirectoryMetadata", appId, phonenumber, dirname);

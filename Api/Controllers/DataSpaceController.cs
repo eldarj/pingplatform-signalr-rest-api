@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Api.SignalR.ClientServices;
 using Ping.Commons.Dtos.Models.DataSpace;
+using Api.Filters.Binding;
 
 namespace Api.Controllers
 {
@@ -36,10 +37,12 @@ namespace Api.Controllers
         {
             appEnv = hostingEnvironment;
         }
+        
+        // POST: eldarja/directories/?dir1/dir2/mydir/mysubdir...
 
-        [Route("{username}/directories")]
+        [Route("{username}/directories/{*directoryPath}")]
         [HttpPost]
-        public IActionResult CreateDirectory([FromRoute] string username, [FromBody] DirectoryDto directoryDto)
+        public IActionResult CreateDirectory([FromRoute] string username, [FromRoute] string directoryPath, [FromBody] DirectoryDto directoryDto)
         {
             if (!ModelState.IsValid)
             {
@@ -47,18 +50,18 @@ namespace Api.Controllers
             }
 
             // TODO: Check for what is 'Path' used and introduce new property 'Url'
-            string path;
-            if (String.IsNullOrWhiteSpace(directoryDto.Path))
+            string physicalPath;
+            if (String.IsNullOrWhiteSpace(directoryPath))
             {
-                path = Path.Combine(appEnv.WebRootPath, 
+                physicalPath = Path.Combine(appEnv.WebRootPath, 
                     String.Format(@"dataspace/{0}/{1}", username, directoryDto.DirName)); // TODO FIX THIS AND ADD URL FIELD TO DTO MODEL
                 directoryDto.Path = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/{directoryDto.DirName}";
             }
             else
             {
-                path = Path.Combine(appEnv.WebRootPath, 
-                    String.Format(@"dataspace/{0}/{1}/{2}", username, directoryDto.Path, directoryDto.DirName));
-                directoryDto.Path = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/{directoryDto.Path}/{directoryDto.DirName}";
+                physicalPath = Path.Combine(appEnv.WebRootPath, 
+                    String.Format(@"dataspace/{0}/{1}/{2}", username, directoryPath, directoryDto.DirName));
+                directoryDto.Path = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/{directoryPath}/{directoryDto.DirName}";
             }
 
 
@@ -70,7 +73,7 @@ namespace Api.Controllers
                 return BadRequest();
             }
 
-            System.IO.Directory.CreateDirectory(path);
+            System.IO.Directory.CreateDirectory(physicalPath);
 
             dataSpaceSignalRClient.SaveDirectoryMetadata(appId, phonenumber, directoryDto);
             return Ok();
@@ -80,17 +83,44 @@ namespace Api.Controllers
         [HttpGet]
         public IActionResult DownloadFile([FromRoute] string username, [FromRoute] string filename)
         {
-            string filePath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, filename));
+            string physicalPath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, filename));
             string acceptHeader = Request.Headers["Accept"];
 
             var provider = new FileExtensionContentTypeProvider();
             string contentType;
-            if (!provider.TryGetContentType(filePath, out contentType) || acceptHeader.Equals("application/octet-stream"))
+            if (!provider.TryGetContentType(physicalPath, out contentType) || acceptHeader.Equals("application/octet-stream"))
             {
                 contentType = "application/octet-stream";
             }
 
-            return File(System.IO.File.OpenRead(filePath), contentType);
+            return File(System.IO.File.OpenRead(physicalPath), contentType);
+        }
+
+        [Route("{username}/directories/{*directoryPath}")]
+        [HttpDelete]
+        public IActionResult DeleteDirectory([FromRoute] string username, [FromRoute] string directoryPath)
+        {
+            if (String.IsNullOrWhiteSpace(directoryPath))
+            {
+                return BadRequest();
+            }
+
+            string physicalPath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, directoryPath));
+            var appId = Request.Headers["AppId"];
+            var phonenumber = Request.Headers["OwnerPhoneNumber"];
+
+            // ((( NOT TRUE: we have a try/catch ))) We won't check whether the file exists on filesystem, because we want to delete any metadata from DB anyway
+            try
+            {
+                System.IO.Directory.Delete(physicalPath);
+            }
+            catch (Exception e)
+            {
+                return BadRequest();
+            }
+
+            dataSpaceSignalRClient.DeleteDirectoryMetadata(appId, phonenumber, directoryPath);
+            return NoContent();
         }
 
         // TODO - Delete file from filesystem and sendout a SignalR event to the hub, for DataSpaceMicroservice, to delete db metadata
@@ -116,6 +146,9 @@ namespace Api.Controllers
             return NoContent();
         }
 
+        // TOODO - Add restful Directory endpoints, for uploading files within a specific directory
+
+
         // TODO - DONE: read a json string from byte[] into a string and write as a .txt file (System.IO.Write)
         //      - DONE: write a picture or document as byte[] into a file (System.IO.Write)
         //      - DONE: convert the receiving stream into another stream and write into a file, instead of loading the entire byte[] into memory
@@ -124,7 +157,7 @@ namespace Api.Controllers
         //      - check MultipartForm
         //      - check axios:stream
 
-            // POST: api/dataspace/eldar/files
+        // POST: api/dataspace/eldar/files
         [Route("{username}/files")]
         [HttpPost]
         [DisableRequestSizeLimit]
@@ -141,7 +174,7 @@ namespace Api.Controllers
 
             string fileName = "";
             string UploadsDir = "";
-            string targetWritePath = "";
+            string writePath = "";
 
             // Accumulate all form key-value pairs in the request (in case we want to do something with other form-fields that are not only files)
             KeyValueAccumulator formAccumulator = new KeyValueAccumulator();
@@ -173,13 +206,13 @@ namespace Api.Controllers
                             // If the dir doesn't exist, create it
                             Directory.CreateDirectory(UploadsDir);
 
-                            targetWritePath = Path.Combine(UploadsDir, fileName); // Prepare file name and path for writing
+                            writePath = Path.Combine(UploadsDir, fileName); // Prepare file name and path for writing
 
                             //// We can also use a temp location for now eg. AppData on Windows
                             //var targetFilePath = Path.GetTempFileName();
 
                             // Createa a stream and write the request (section-field) body/data
-                            using (var targetStream = System.IO.File.Create(targetWritePath))
+                            using (var targetStream = System.IO.File.Create(writePath))
                             {
                                 // Copy file to disk
                                 await section.Body.CopyToAsync(targetStream);

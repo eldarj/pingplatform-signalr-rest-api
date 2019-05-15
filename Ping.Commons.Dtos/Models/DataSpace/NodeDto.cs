@@ -16,7 +16,8 @@ namespace Ping.Commons.Dtos.Models.DataSpace
         public string NodeType { get; set; }
 
         public string MimeType { get; set; }
-        public virtual ICollection<NodeDto> Files { get; set; }
-        public virtual ICollection<NodeDto> Directories { get; set; }
+        public virtual List<NodeDto> Files { get; set; }
+        public virtual List<NodeDto> Directories { get; set; }
+        public virtual List<NodeDto> Nodes { get; set; }
     }
 }

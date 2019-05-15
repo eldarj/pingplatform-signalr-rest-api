@@ -11,6 +11,8 @@ namespace Api.SignalR.ClientServices
 
         void DeleteFileMetadata(string appId, string phonenumber, string filename);
 
+        void DeleteDirectoryMetadata(string appId, string phoneNumber, string directoryPath);
+
         void SaveDirectoryMetadata(string appId, string phoneNumber, DirectoryDto dirname);
     }
 }

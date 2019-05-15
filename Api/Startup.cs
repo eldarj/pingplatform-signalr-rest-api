@@ -93,7 +93,16 @@ namespace Api
             });
 
             app.UseHttpsRedirection();
-            app.UseMvc();
+            app.UseMvc(routes =>
+            {
+                //routes.MapRoute(
+                //  name: "areas",
+                //  template: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+                //routes.MapRoute(
+                //    name: "default",
+                //    template: "{controller=Login}/{action=Index}/{id?}");
+            });
         }
     }
 }
