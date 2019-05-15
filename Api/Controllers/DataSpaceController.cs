@@ -226,6 +226,7 @@ namespace Api.Controllers
                                     OwnerLastname = lastname,
                                     OwnerPhoneNumber = phonenumber,
                                     FilePath = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/{fileName}",
+                                    Url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/{fileName}",
                                     FileName = fileName,
                                     MimeType = section.ContentType
                                 };
