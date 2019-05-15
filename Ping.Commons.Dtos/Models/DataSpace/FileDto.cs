@@ -7,6 +7,7 @@ namespace Ping.Commons.Dtos.Models.DataSpace
     {
         public string FileName { get; set; }
         public string Path { get; set; }
+        public string Url { get; set; }
         public DateTime CreationTime { get; set; }
         public DateTime LastModifiedTime { get; set; }
         public string OwnerFirstname { get; set; }
