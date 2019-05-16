@@ -160,16 +160,14 @@ namespace Api.Controllers
 
 
                                 // TODO: Generate metadata and save the path into a FileMicroservice with SignalR (db handler)
-                                // save the url
-                                FileUploadDto newFile = new FileUploadDto
+                                FileDto newFile = new FileDto
                                 {
                                     FileName = fileName,
-                                    OwnerPhoneNumber = phonenumber,
+                                    Path = directoryPath,
+                                    Url = url,
                                     OwnerFirstname = firstname,
                                     OwnerLastname = lastname,
-                                    MimeType = section.ContentType,
-                                    FilePath = directoryPath,
-                                    Url = url
+                                    MimeType = section.ContentType
                                 };
 
                                 dataSpaceSignalRClient.SaveFileMetadata(appId, phonenumber, newFile); // rename stuff like this to nodePath

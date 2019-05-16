@@ -39,7 +39,7 @@ namespace Api.SignalR.ClientServices.Impl
             }
         }
 
-        public void SaveFileMetadata(string appId, string phonenumber, FileUploadDto fileUploadDto)
+        public void SaveFileMetadata(string appId, string phonenumber, FileDto fileUploadDto)
         {
             Connection.SendAsync("SaveFileMetadata", appId, phonenumber, fileUploadDto);
         }

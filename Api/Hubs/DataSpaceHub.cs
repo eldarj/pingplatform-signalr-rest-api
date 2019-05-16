@@ -106,7 +106,7 @@ namespace Api.Hubs
         #endregion
 
         #region SaveFileMetadata / upload file
-        public Task SaveFileMetadata(string appId, string phonenumber, FileUploadDto fileDto)
+        public Task SaveFileMetadata(string appId, string phonenumber, FileDto fileDto)
         {
             if (Clients.Group("dataspaceMicroservice") != null)
             {
@@ -119,7 +119,7 @@ namespace Api.Hubs
         }
 
         // TODO, return metadata not only response-string
-        public Task SaveFileMetadataSuccess(string appId, FileUploadDto fileDto)
+        public Task SaveFileMetadataSuccess(string appId, NodeDto fileDto)
         {
             return Clients.All.SendAsync($"UploadFileSuccess{appId}", fileDto);
         }
