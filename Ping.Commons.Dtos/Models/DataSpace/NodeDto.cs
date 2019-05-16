@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace Ping.Commons.Dtos.Models.DataSpace
@@ -17,5 +18,11 @@ namespace Ping.Commons.Dtos.Models.DataSpace
 
         public string MimeType { get; set; }
         public virtual List<NodeDto> Nodes { get; set; }
+
+        [JsonIgnore]
+        public virtual List<NodeDto> Files { get; set; }
+
+        [JsonIgnore]
+        public virtual List<NodeDto> Directories { get; set; }
     }
 }
