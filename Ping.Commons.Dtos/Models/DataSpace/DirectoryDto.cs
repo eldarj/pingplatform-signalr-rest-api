@@ -5,17 +5,12 @@ namespace Ping.Commons.Dtos.Models.DataSpace
 {
     public class DirectoryDto
     {
-        public string DirName { get; set; }
-        public string Path { get; set; } // check if we need this?
+        public string Name { get; set; }
+        public string Path { get; set; }
         public string Url { get; set; }
-        public DateTime CreationTime { get; set; } = DateTime.Now;
-        public DateTime LastModifiedTime { get; set; } = DateTime.Now;
-        public string OwnerFirstname { get; set; }
-        public string OwnerLastname { get; set; }
         public bool Private { get; set; } = true;
-        public string ParentDirName { get; set; } // check if we need this?
 
-        public virtual ICollection<FileDto> Files { get; set; }
+        public virtual ICollection<FileDto> Files { get; set; } // Check if we need this when creating new dirs (uploading new files)
         public virtual ICollection<DirectoryDto> Directories { get; set; }
     }
 }

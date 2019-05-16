@@ -162,11 +162,9 @@ namespace Api.Controllers
                                 // TODO: Generate metadata and save the path into a FileMicroservice with SignalR (db handler)
                                 FileDto newFile = new FileDto
                                 {
-                                    FileName = fileName,
+                                    Name = fileName,
                                     Path = directoryPath,
                                     Url = url,
-                                    OwnerFirstname = firstname,
-                                    OwnerLastname = lastname,
                                     MimeType = section.ContentType
                                 };
 

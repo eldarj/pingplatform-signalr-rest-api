@@ -40,15 +40,15 @@ namespace Api.Controllers
             if (String.IsNullOrWhiteSpace(directoryPath))
             {
                 physicalPath = Path.Combine(appEnv.WebRootPath,
-                    String.Format(@"dataspace/{0}/{1}", username, directoryDto.DirName)); // TODO FIX THIS AND ADD URL FIELD TO DTO MODEL
-                directoryDto.Url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/directories/{directoryDto.DirName}";
+                    String.Format(@"dataspace/{0}/{1}", username, directoryDto.Name)); // TODO FIX THIS AND ADD URL FIELD TO DTO MODEL
+                directoryDto.Url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/directories/{directoryDto.Name}";
                 directoryDto.Path = "";
             }
             else
             {
                 physicalPath = Path.Combine(appEnv.WebRootPath,
-                    String.Format(@"dataspace/{0}/{1}/{2}", username, directoryPath, directoryDto.DirName));
-                directoryDto.Url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/directories/{directoryPath}/{directoryDto.DirName}";
+                    String.Format(@"dataspace/{0}/{1}/{2}", username, directoryPath, directoryDto.Name));
+                directoryDto.Url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/directories/{directoryPath}/{directoryDto.Name}";
                 directoryDto.Path = directoryPath;
             }
 
@@ -56,7 +56,7 @@ namespace Api.Controllers
             var appId = Request.Headers["AppId"];
             var phonenumber = Request.Headers["OwnerPhoneNumber"]; // Remove this and use Authentication and User obj.
 
-            if (System.IO.Directory.Exists(directoryDto.Path + '/' + directoryDto.DirName))
+            if (System.IO.Directory.Exists(directoryDto.Path + '/' + directoryDto.Name))
             {
                 return BadRequest();
             }
