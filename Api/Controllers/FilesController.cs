@@ -55,7 +55,7 @@ namespace Api.Controllers
             return File(System.IO.File.OpenRead(physicalPath), contentType);
         }
 
-        // TODO - Delete file from filesystem and sendout a SignalR event to the hub, for DataSpaceMicroservice, to delete db metadata
+        // Delete file from filesystem and send a SignalR event, for DataSpaceMicroservice, to delete metadata within the db aswell
         [Route("{username}/files/{filename}")]
         [HttpDelete]
         public IActionResult DeleteFile([FromRoute] string username, [FromRoute] string filename)

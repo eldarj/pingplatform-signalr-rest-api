@@ -19,6 +19,7 @@ namespace Ping.Commons.Dtos.Models.DataSpace
         public string MimeType { get; set; }
         public virtual List<NodeDto> Nodes { get; set; }
 
+        // Collections mainly used for mapping help (File and Directory Entity models to NodeDto; Checkout Automapper profile)
         [JsonIgnore]
         public virtual List<NodeDto> Files { get; set; }
 
