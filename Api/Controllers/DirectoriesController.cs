@@ -88,7 +88,7 @@ namespace Api.Controllers
             // We won't check whether the file exists on filesystem, because we want to delete any metadata from DB anyway
             try
             {
-                System.IO.Directory.Delete(physicalPath);
+                System.IO.Directory.Delete(physicalPath, true);
             }
             catch (Exception e)
             {

@@ -148,6 +148,7 @@ namespace Api.Controllers
                             {
                                 physicalPath = Path.Combine(UploadsDir, fileName); // Prepare file name and path for writing
                                 url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/files/{fileName}";
+                                directoryPath = "";
                             }
                             else
                             {
