@@ -57,51 +57,26 @@ namespace Api.Hubs
         }
         #endregion
 
-        #region RequestFilesMetadata / get list of files and dirs
-        public Task RequestFilesMetaData(string appId, string phoneNumber)
-        {
-            if (Clients.Group("dataspaceMicroservice") != null)
-            {
-                return Clients.Group("dataspaceMicroservice").SendAsync("RequestFilesMetaData", appId, phoneNumber);
-            }
-            else
-            {
-                return Clients.All.SendAsync("RequestFilesMetaData", appId, phoneNumber);
-            }
-        }
-
-        // TODO, return metadata not only response-string
-        public Task RequestFilesMetaDataSuccess(string appId, DataSpaceMetadata fileDto)
-        {
-            return Clients.All.SendAsync($"RequestFilesMetaDataSuccess{appId}", fileDto);
-        }
-
-        public Task RequestFileMetaDataFail(string appId, string reasonMsg)
-        {
-            return Clients.All.SendAsync($"RequestFilesMetaDataFail{appId}", reasonMsg);
-        }
-        #endregion
-
         #region DeleteFileMetadata
-        public Task DeleteFileMetadata(string appId, string phonenumber, string filename)
+        public Task DeleteFileMetadata(string appId, string phonenumber, string filePath)
         {
             if (Clients.Group("dataspaceMicroservice") != null)
             {
-                return Clients.Group("dataspaceMicroservice").SendAsync("DeleteFileMetadata", appId, phonenumber, filename);
+                return Clients.Group("dataspaceMicroservice").SendAsync("DeleteFileMetadata", appId, phonenumber, filePath);
             }
             else
             {
-                return Clients.All.SendAsync("DeleteFileMetadata", appId, phonenumber, filename);
+                return Clients.All.SendAsync("DeleteFileMetadata", appId, phonenumber, filePath);
             }
         }
-        public Task DeleteFileMetadataSuccess(string appId, string fileName)
+        public Task DeleteFileMetadataSuccess(string appId, string filePath)
         {
-            return Clients.All.SendAsync($"DeleteFileMetadataSuccess{appId}", fileName);
+            return Clients.All.SendAsync($"DeleteFileMetadataSuccess{appId}", filePath);
         }
 
-        public Task DeleteFileMetadataFail(string appId, string fileName, string reasonMsg)
+        public Task DeleteFileMetadataFail(string appId, string filePath, string reasonMsg)
         {
-            return Clients.All.SendAsync($"DeleteFileMetadataFail{appId}", fileName, reasonMsg);
+            return Clients.All.SendAsync($"DeleteFileMetadataFail{appId}", filePath, reasonMsg);
         }
         #endregion
 
@@ -127,6 +102,31 @@ namespace Api.Hubs
         public Task SaveFileMetadataFail(string appId, string reasonMsg)
         {
             return Clients.All.SendAsync($"UploadFileFail{appId}", reasonMsg);
+        }
+        #endregion
+
+        #region RequestFilesMetadata / get list of files and dirs
+        public Task RequestFilesMetaData(string appId, string phoneNumber)
+        {
+            if (Clients.Group("dataspaceMicroservice") != null)
+            {
+                return Clients.Group("dataspaceMicroservice").SendAsync("RequestFilesMetaData", appId, phoneNumber);
+            }
+            else
+            {
+                return Clients.All.SendAsync("RequestFilesMetaData", appId, phoneNumber);
+            }
+        }
+
+        // TODO, return metadata not only response-string
+        public Task RequestFilesMetaDataSuccess(string appId, DataSpaceMetadata fileDto)
+        {
+            return Clients.All.SendAsync($"RequestFilesMetaDataSuccess{appId}", fileDto);
+        }
+
+        public Task RequestFileMetaDataFail(string appId, string reasonMsg)
+        {
+            return Clients.All.SendAsync($"RequestFilesMetaDataFail{appId}", reasonMsg);
         }
         #endregion
 

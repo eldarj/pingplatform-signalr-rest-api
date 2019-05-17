@@ -56,25 +56,31 @@ namespace Api.Controllers
         }
 
         // Delete file from filesystem and send a SignalR event, for DataSpaceMicroservice, to delete metadata within the db aswell
-        [Route("{username}/files/{filename}")]
+        [Route("{username}/files/{*filePath}")]
         [HttpDelete]
-        public IActionResult DeleteFile([FromRoute] string username, [FromRoute] string filename)
+        public IActionResult DeleteFile([FromRoute] string username, [FromRoute] string filePath)
         {
-            string filePath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, filename));
+            if (String.IsNullOrWhiteSpace(filePath))
+            {
+                return BadRequest();
+            }
+
+            string physicalPath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, filePath));
             var appId = Request.Headers["AppId"];
             var phonenumber = Request.Headers["OwnerPhoneNumber"];
-            
+
+            // ((( COMMENT BELOW IS NOT TRUE: we have a try/catch block ))) 
             // We won't check whether the file exists on filesystem, because we want to delete any metadata from DB anyway
             try
             {
-                System.IO.File.Delete(filePath);
+                System.IO.File.Delete(physicalPath);
             }
             catch (Exception e)
             {
                 return BadRequest();
             }
 
-            dataSpaceSignalRClient.DeleteFileMetadata(appId, phonenumber, filename);
+            dataSpaceSignalRClient.DeleteFileMetadata(appId, phonenumber, filePath);
             return NoContent();
         }
 
