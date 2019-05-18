@@ -85,10 +85,13 @@ namespace Api
                 routes.MapHub<AccountHub>("/accounthub", options =>
                 {
                     // set to 10mb max
-                    options.ApplicationMaxBufferSize = 15000 * 1024;
+                    options.ApplicationMaxBufferSize = 100 * 1024;
                 });
                 routes.MapHub<AuthHub>("/authhub");
-                routes.MapHub<DataSpaceHub>("/dataspacehub");
+                routes.MapHub<DataSpaceHub>("/dataspacehub", options =>
+                {
+                    options.ApplicationMaxBufferSize = 10_000 * 1024;
+                });
                 //routes.MapHub<ContactsHub>("/contactshub");
             });
 
