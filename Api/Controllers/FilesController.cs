@@ -38,13 +38,20 @@ namespace Api.Controllers
             appEnv = hostingEnvironment;
         }
 
-        [Route("{username}/files/{filename}")]
+        [Route("{username}/files/{*filePath}")]
         [HttpGet]
-        public IActionResult DownloadFile([FromRoute] string username, [FromRoute] string filename)
+        public IActionResult DownloadFile([FromRoute] string username, [FromRoute] string filePath)
         {
-            string physicalPath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, filename));
+            if (String.IsNullOrWhiteSpace(filePath))
+            {
+                //return BadRequest();
+            }
+
+            string physicalPath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, filePath));
             string acceptHeader = Request.Headers["Accept"];
 
+
+            // OPT 2
             var provider = new FileExtensionContentTypeProvider();
             string contentType;
             if (!provider.TryGetContentType(physicalPath, out contentType) || acceptHeader.Equals("application/octet-stream"))
@@ -52,7 +59,22 @@ namespace Api.Controllers
                 contentType = "application/octet-stream";
             }
 
-            return File(System.IO.File.OpenRead(physicalPath), contentType);
+            // OPT 3
+            // MemoryStream
+            //var range = Request.Headers;
+            // OPT 2
+            FileStream fs = new FileStream(physicalPath, FileMode.Open, FileAccess.ReadWrite);
+            return new FileStreamResult(fs, contentType);
+
+            // OPT 4
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
+            response.Content = new StreamContent(System.IO.File.OpenRead(physicalPath));
+            //var contentType = MimeMapping.GetMimeMapping(Path.GetExtension(FilePath));
+            //response.Content.Headers.Add("Content-Type", contentType);
+            //return response;
+
+            //// OPT 1
+            //return File(System.IO.File.OpenRead(physicalPath), contentType);
         }
 
         // Delete file from filesystem and send a SignalR event, for DataSpaceMicroservice, to delete metadata within the db aswell
