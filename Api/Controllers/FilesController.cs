@@ -44,14 +44,12 @@ namespace Api.Controllers
         {
             if (String.IsNullOrWhiteSpace(filePath))
             {
-                //return BadRequest();
+                return BadRequest();
             }
 
             string physicalPath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, filePath));
             string acceptHeader = Request.Headers["Accept"];
 
-
-            // OPT 2
             var provider = new FileExtensionContentTypeProvider();
             string contentType;
             if (!provider.TryGetContentType(physicalPath, out contentType) || acceptHeader.Equals("application/octet-stream"))
@@ -59,16 +57,15 @@ namespace Api.Controllers
                 contentType = "application/octet-stream";
             }
 
-            // OPT 3
-            // MemoryStream
-            //var range = Request.Headers;
             // OPT 2
             FileStream fs = new FileStream(physicalPath, FileMode.Open, FileAccess.ReadWrite);
-            return new FileStreamResult(fs, contentType);
+            return new FileStreamResult(fs, contentType) {
+                EnableRangeProcessing = true
+            };
 
-            // OPT 4
-            var response = new HttpResponseMessage(HttpStatusCode.OK);
-            response.Content = new StreamContent(System.IO.File.OpenRead(physicalPath));
+            //// OPT 3
+            //var response = new HttpResponseMessage(HttpStatusCode.OK);
+            //response.Content = new StreamContent(System.IO.File.OpenRead(physicalPath));
             //var contentType = MimeMapping.GetMimeMapping(Path.GetExtension(FilePath));
             //response.Content.Headers.Add("Content-Type", contentType);
             //return response;
@@ -194,7 +191,8 @@ namespace Api.Controllers
                                     Name = fileName,
                                     Path = directoryPath,
                                     Url = url,
-                                    MimeType = section.ContentType
+                                    MimeType = section.ContentType,
+                                    FileSizeInKB = (int)(targetStream.Length / 1024) // Test
                                 };
 
                                 dataSpaceSignalRClient.SaveFileMetadata(appId, phonenumber, newFile); // rename stuff like this to nodePath

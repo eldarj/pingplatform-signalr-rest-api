@@ -9,7 +9,7 @@ namespace Ping.Commons.Dtos.Models.DataSpace
         public string Path { get; set; }
         public string Url { get; set; }
         public bool Private { get; set; } = true;
-
         public string MimeType { get; set; }
+        public int FileSizeInKB { get; set; }
     }
 }

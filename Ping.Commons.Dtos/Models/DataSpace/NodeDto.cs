@@ -16,6 +16,8 @@ namespace Ping.Commons.Dtos.Models.DataSpace
         public bool Private { get; set; } = true;
         public string NodeType { get; set; }
 
+        public int FileSizeInKB { get; set; }
+        // DirectorySizeInKB - should this be implemented?
         public string MimeType { get; set; }
         public virtual List<NodeDto> Nodes { get; set; }
 
