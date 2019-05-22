@@ -12,6 +12,28 @@ namespace Api.Hubs
 {
     public class DataSpaceHub : Hub
     {
+        public Task DeleteMultipleNodesMetadata(string appId, string phoneNumber, List<SimpleNodeDto> nodes)
+        {
+            if (Clients.Group("dataspaceMicroservice") != null)
+            {
+                return Clients.Group("dataspaceMicroservice").SendAsync("DeleteMultipleNodesMetadata", appId, phoneNumber, nodes);
+            }
+            else
+            {
+                return Clients.All.SendAsync("DeleteMultipleNodesMetadata", appId, phoneNumber, nodes);
+            }
+        }
+        // Merge into one endpoint?
+        public Task DeleteMultipleNodesMetadataSuccess(string appId, List<SimpleNodeDto> nodes)
+        {
+            return Clients.All.SendAsync($"DeleteMultipleNodesMetadataSuccess{appId}", nodes);
+        }
+
+        public Task DeleteMultipleNodesMetadataFail(string appId, List<SimpleNodeDto> nodes, string reasonMsg)
+        {
+            return Clients.All.SendAsync($"DeleteMultipleNodesMetadataFail{appId}", nodes, reasonMsg);
+        }
+
         #region SaveDirectoryMetadata / upload file
         public Task SaveDirectoryMetadata(string appId, string phoneNumber, DirectoryDto directoryDto)
         {

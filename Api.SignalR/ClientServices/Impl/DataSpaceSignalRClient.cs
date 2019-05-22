@@ -58,5 +58,10 @@ namespace Api.SignalR.ClientServices.Impl
         {
             Connection.SendAsync("SaveDirectoryMetadata", appId, phonenumber, directoryDto);
         }
+
+        public void DeleteMultipleNodesMetadata(string appId, string phonenumber, List<SimpleNodeDto> nodes)
+        {
+            Connection.SendAsync("DeleteMultipleNodesMetadata", appId, phonenumber, nodes);
+        }
     }
 }

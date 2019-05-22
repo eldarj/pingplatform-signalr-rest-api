@@ -74,6 +74,33 @@ namespace Api.Controllers
             //return File(System.IO.File.OpenRead(physicalPath), contentType);
         }
 
+        // Delete multiple files
+        [Route("{username}/files")]
+        [HttpDelete]
+        public IActionResult Delete([FromRoute] string username, [FromBody] List<SimpleNodeDto> nodes)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            if (nodes.Count <= 0)
+            {
+                return BadRequest("Requested list of files and directories to be deleted, must not be empty.");
+            }
+
+            if (!TryBatchDelete(username, nodes))
+            {
+                return BadRequest("Error while trying to delete files - check passed list of files or dirs.");
+            }
+
+            var appId = Request.Headers["AppId"];
+            var phonenumber = Request.Headers["OwnerPhoneNumber"];
+
+            dataSpaceSignalRClient.DeleteMultipleNodesMetadata(appId, phonenumber, nodes);
+            return NoContent();
+        }
+
         // Delete file from filesystem and send a SignalR event, for DataSpaceMicroservice, to delete metadata within the db aswell
         [Route("{username}/files/{*filePath}")]
         [HttpDelete]
@@ -257,6 +284,54 @@ namespace Api.Controllers
             }
 
             return HeaderUtilities.RemoveQuotes(boundary).Value;
+        }
+
+        // Batch deletes files and/or directories
+        //  -- returns false if a file or dir doesn't exist, or if an exception was thrown
+        private bool TryBatchDelete(string username, List<SimpleNodeDto> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                string nodePath = node.Path.Length > 0 ? node.Path + "/" + node.Name : node.Name;
+                string physicalPath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, nodePath));
+
+                try
+                {
+                    if (node.NodeType == "File")
+                    {
+                        if (System.IO.File.Exists(physicalPath))
+                        {
+                            System.IO.File.Delete(physicalPath);
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else if (node.NodeType == "Directory")
+                    {
+                        if (System.IO.Directory.Exists(physicalPath))
+                        {
+                            System.IO.Directory.Delete(physicalPath, true);
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                catch (Exception e)
+                {
+                    // log error
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
