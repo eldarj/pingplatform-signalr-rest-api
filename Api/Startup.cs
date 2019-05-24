@@ -93,7 +93,7 @@ namespace Api
                     options.ApplicationMaxBufferSize = 10_000 * 1024;
                 });
                 //routes.MapHub<ContactsHub>("/contactshub");
-                //routes.MapHub<ChatHub>("/chathub");
+                routes.MapHub<ChatHub>("/chathub");
             });
 
             app.UseHttpsRedirection();
