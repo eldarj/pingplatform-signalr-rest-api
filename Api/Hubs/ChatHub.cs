@@ -11,8 +11,6 @@ namespace Api.Hubs
 {
     public class ChatHub : Hub
     {
-
-
         #region ConnectDisconnect
         public override async Task OnConnectedAsync()
         {

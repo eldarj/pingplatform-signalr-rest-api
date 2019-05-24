@@ -15,6 +15,6 @@ namespace Api.DtoModels.Auth
         public DateTime DateRegistered { get; set; } = DateTime.Now;
         public string Token { get; set; }
         public bool CreateSession { get; set; }
-        public List<ContactDto> Contacts { get; set; }
+        public ICollection<ContactRegistrationDto> Contacts { get; set; } 
     }
 }

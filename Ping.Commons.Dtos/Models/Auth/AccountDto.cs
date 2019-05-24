@@ -18,5 +18,6 @@ namespace Api.DtoModels.Auth
         public bool CreateSession { get; set; }
         public string AvatarImageUrl { get; set; }
         public string CoverImageUrl { get; set; }
+        public ICollection<ContactDto> Contacts { get; set; }
     }
 }
