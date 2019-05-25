@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Ping.Commons.Dtos.Models.Auth;
+using Ping.Commons.Dtos.Models.Chat;
+using Ping.Commons.Dtos.Models.Wrappers.Response;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -12,7 +14,47 @@ namespace Api.Hubs
 {
     public class ChatHub : Hub
     {
+        #region Messages
+        public Task SendMessage(string phoneNumber, MessageDto newMessageDto)
+        {
+            newMessageDto.Sender = phoneNumber;
+            if (Clients.Group("chatMicroservice") != null)
+            {
+                Clients.Group("chatMicroservice").SendAsync("SendMessage", newMessageDto);
+            }
+            return Clients.All.SendAsync($"ReceiveMessage{newMessageDto.Receiver}", newMessageDto);
+        }
+        
+        #endregion
         #region Contacts
+        public Task AddContact(string appId, string phoneNumber, ContactDto newContactDto)
+        {
+            if (Clients.Group("chatMicroservice") != null)
+            {
+                return Clients.Group("chatMicroservice").SendAsync("AddContact", appId, phoneNumber, newContactDto);
+            }
+            else
+            {
+                return Clients.All.SendAsync("AddContact", appId, phoneNumber);
+            }
+        }
+
+        public Task AddContactResponse(string appId, ResponseDto<ContactDto> contactDto)
+        {
+            return Clients.All.SendAsync($"AddContactResponse{appId}", contactDto);
+        }
+
+        public Task AddContactFail(string appId, string reasonMsg)
+        {
+            return Clients.All.SendAsync($"AddContactFail{appId}", reasonMsg);
+        }
+        // NOT USED::THINK ABOUT USING THIS FOR SENDING OUT NOTIFICATIONS AFTER INVITES
+        public Task ContactRegisteredOnPing(string phoneNumber, ContactDto contactDto)
+        {
+            return Clients.All.SendAsync($"ContactRegisteredOnPing{phoneNumber}", contactDto);
+        }
+
+        //
         public Task RequestContacts(string appId, string phoneNumber)
         {
             if (Clients.Group("chatMicroservice") != null)
@@ -25,9 +67,9 @@ namespace Api.Hubs
             }
         }
 
-        public Task RequestContactsSuccess(string appId, List<ContactDto> fileDto)
+        public Task RequestContactsSuccess(string appId, List<ContactDto> contactDto)
         {
-            return Clients.All.SendAsync($"RequestContactsSuccess{appId}", fileDto);
+            return Clients.All.SendAsync($"RequestContactsSuccess{appId}", contactDto);
         }
 
         public Task RequestContactsFail(string appId, string reasonMsg)
