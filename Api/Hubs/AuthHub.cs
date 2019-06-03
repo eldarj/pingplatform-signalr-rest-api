@@ -9,6 +9,7 @@ using System.Web;
 using Api.DtoModels.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
+using Ping.Commons.Dtos.Models.Auth;
 
 namespace Api.Hubs
 {
@@ -89,6 +90,26 @@ namespace Api.Hubs
         }
         #endregion
 
+        #region ContactCodes
+        public Task RequestCallingCodes(string appId)
+        {
+            if (Clients.Group("accountMicroservice") != null)
+            {
+                return Clients.Group("accountMicroservice").SendAsync("RequestCallingCodes", appId);
+            }
+            else
+            {
+                return Clients.All.SendAsync("RequestCallingCodes", appId);
+            }
+        }
+
+        public Task ResponseCallingCodes(string appId, List<CallingCodeDto> callingCodes)
+        {
+            return Clients.All.SendAsync($"ResponseCallingCodes{appId}", callingCodes);
+        }
+        #endregion
+
+        #region Connected/Disco.
         public override async Task OnConnectedAsync()
         {
             QueryString queryString = Context.GetHttpContext().Request.QueryString;
@@ -115,5 +136,6 @@ namespace Api.Hubs
 
             await base.OnDisconnectedAsync(exception);
         }
+        #endregion
     }
 }

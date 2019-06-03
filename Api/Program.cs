@@ -24,6 +24,10 @@ namespace Api
                 .ConfigureKestrel(options =>
                 {
                     options.Limits.MaxRequestBodySize = 100000 * 1024;
-                });
+                })
+                .UseUrls()
+                .UseUrls(new string[] { "https://192.168.1.2:44380", "http://192.168.1.2:18458" });
+
+
     }
 }

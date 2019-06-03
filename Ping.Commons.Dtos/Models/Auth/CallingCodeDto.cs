@@ -4,10 +4,10 @@ using System.Text;
 
 namespace Ping.Commons.Dtos.Models.Auth
 {
-    public class ContactRegistrationDto
+    public class CallingCodeDto
     {
-        public string ContactName { get; set; }
         public int CallingCountryCode { get; set; }
-        public string PhoneNumber { get; set; }
+        public string CountryName { get; set; }
+        public string IsoCode { get; set; }
     }
 }

@@ -7,6 +7,7 @@ namespace Api.DtoModels.Auth
 {
     public class AccountLoginDto
     {
+        public int CallingCountryCode { get; set; }
         public string PhoneNumber { get; set; }
         public string Token { get; set; }
         public bool CreateSession { get; set; }

@@ -24,9 +24,20 @@ namespace Api.Hubs
             }
             return Clients.All.SendAsync($"ReceiveMessage{newMessageDto.Receiver}", newMessageDto);
         }
-        
+
         #endregion
         #region Contacts
+        public Task UpdateContact(string appId, string phoneNumber, ContactDto contactDto)
+        {
+            if (Clients.Group("chatMicroservice") != null)
+            {
+                return Clients.Group("chatMicroservice").SendAsync("UpdateContact", appId, phoneNumber, contactDto);
+            }
+            else
+            {
+                return Clients.All.SendAsync("AddContact", appId, phoneNumber);
+            }
+        }
         public Task AddContact(string appId, string phoneNumber, ContactDto newContactDto)
         {
             if (Clients.Group("chatMicroservice") != null)
