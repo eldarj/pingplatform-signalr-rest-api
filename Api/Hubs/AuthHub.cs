@@ -7,133 +7,83 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Web;
 using Api.DtoModels.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using Ping.Commons.Dtos.Models.Auth;
+using Ping.Commons.Dtos.Models.Wrappers.Response;
 
 namespace Api.Hubs
 {
     public class AuthHub : Hub
     {
-        public Task FileReceivedTest(byte[] x)
-        {
-            return Clients.All.SendAsync("FileReceivedTest", x);
-        }
-        public ChannelReader<int> DelayCounter(int delay)
-        {
-            var channel = Channel.CreateUnbounded<int>();
+        private static readonly string MicroserviceHandlerIdentifier = "AccountMicroservice";
 
-            //Task.Run(() => WriteItems(channel.Writer, 20, delay));
-            //Task run = WriteItems(channel.Writer, 20, delay));
-            _ = WriteItems(channel.Writer, 20, delay);
-
-            return channel.Reader;
+        #region Authenticate
+        public Task RequestAuthentication(AccountDto request)
+        {
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("RequestAuthentication", request);
         }
 
-        private async Task WriteItems(ChannelWriter<int> writer, int count, int delay)
+        public Task AuthenticationDone(AccountDto request)
         {
-            for (var i = 0; i < count; i++)
-            {
-                await writer.WriteAsync(i);
-                await Task.Delay(delay);
-            }
-
-            writer.TryComplete();
+            return Clients.All
+                .SendAsync($"AuthenticationDone{request.PhoneNumber}", request);
         }
 
-        #region Auth-Login Hub Endpoints
-        public Task RequestAuthentication(string appId, AccountDto request)
+        public Task AuthenticationFailed(ResponseDto<AccountDto> responseDto) // TODO: Make all response ResponseDto
         {
-            if (Clients.Group("accountMicroservice") != null)
-            {
-                return Clients.Group("accountMicroservice").SendAsync("RequestAuthentication", appId, request);
-            }
-            else
-            {
-                return Clients.All.SendAsync("RequestAuthentication", appId, request);
-            }
-        }
-
-        public Task AuthenticationDone(string appId, AccountDto request)
-        {
-            return Clients.All.SendAsync($"AuthenticationDone{appId}", request);
-        }
-
-        public Task AuthenticationFailed(string appId, string reasonMsg)
-        {
-            return Clients.All.SendAsync($"AuthenticationFailed{appId}", reasonMsg);
+            return Clients.All
+                .SendAsync($"AuthenticationFailed{responseDto.Dto.PhoneNumber}", responseDto);
         }
         #endregion
 
-        #region Auth-Register Hub Endpoints
-        public Task RequestRegistration(string appId, AccountDto request)
+        #region Register
+        public Task RequestRegistration(AccountDto request)
         {
-            if (Clients.Group("accountMicroservice") != null)
-            {
-                return Clients.Group("accountMicroservice").SendAsync("RequestRegistration", appId, request);
-            }
-            else
-            {
-                return Clients.All.SendAsync("RequestRegistration", appId, request);
-            }
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("RequestRegistration", request);
         }
 
-        public void RegistrationDone(string appId, AccountDto request)
+        public Task RegistrationDone(string phoneNumber, AccountDto request)
         {
-            // TODO: change this so we only apply it to one user (don't use appId, but Clients.User which requires Auth. impl.)
-            Clients.All.SendAsync($"RegistrationDone{appId}", request);
+            return Clients.All
+                .SendAsync($"RegistrationDone{phoneNumber}", request);
         }
 
-        public Task RegistrationFailed(string appId, string reasonMsg)
+        public Task RegistrationFailed(string phoneNumber, string reasonMsg)
         {
-            return Clients.All.SendAsync($"RegistrationFailed{appId}", reasonMsg);
+            return Clients.All
+                .SendAsync($"RegistrationFailed{phoneNumber}", reasonMsg);
         }
         #endregion
 
         #region ContactCodes
-        public Task RequestCallingCodes(string appId)
+        public Task RequestCallingCodes(string phoneNumber)
         {
-            if (Clients.Group("accountMicroservice") != null)
-            {
-                return Clients.Group("accountMicroservice").SendAsync("RequestCallingCodes", appId);
-            }
-            else
-            {
-                return Clients.All.SendAsync("RequestCallingCodes", appId);
-            }
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("RequestCallingCodes", phoneNumber);
         }
 
-        public Task ResponseCallingCodes(string appId, List<CallingCodeDto> callingCodes)
+        public Task ResponseCallingCodes(string phoneNumber, List<CallingCodeDto> callingCodes)
         {
-            return Clients.All.SendAsync($"ResponseCallingCodes{appId}", callingCodes);
+            return Clients.All
+                .SendAsync($"ResponseCallingCodes{phoneNumber}", callingCodes);
         }
         #endregion
 
         #region Connected/Disco.
         public override async Task OnConnectedAsync()
         {
-            QueryString queryString = Context.GetHttpContext().Request.QueryString;
-            NameValueCollection qs = HttpUtility.ParseQueryString(queryString.ToString());
-            String groupName = qs.Get("groupName");
-            if(groupName != null)
-            {
-                await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-            }
-
+            // TODO: check here - this non-authorized user's ID and save for later use
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            QueryString queryString = Context.GetHttpContext().Request.QueryString;
-            NameValueCollection qs = HttpUtility.ParseQueryString(queryString.ToString());
-            String groupName = qs.Get("groupName");
-
-            if (groupName != null)
-            {
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-            }
-
+            // TODO: check here - this non-authorized user's ID and save for later use
             await base.OnDisconnectedAsync(exception);
         }
         #endregion

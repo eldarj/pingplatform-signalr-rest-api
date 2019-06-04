@@ -5,84 +5,47 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Api.DtoModels.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Api.Hubs
 {
+    [Authorize]
     public class AccountHub : Hub
     {
+        private static readonly string MicroserviceHandlerIdentifier = "AccountMicroservice";
+
         #region Update
-        public Task UpdateProfile(string appId, AccountDto request)
+        public Task UpdateProfile(AccountDto request)
         {
-            if (Clients.Group("accountMicroservice") != null)
-            {
-                return Clients.Group("accountMicroservice").SendAsync("UpdateProfile", appId, request);
-            }
-            else
-            {
-                return Clients.All.SendAsync("UpdateProfile", appId, "test");
-            }
-        }
-        public Task AvatarUpload(string appId, string accountPhoneNumber, string imgUrl)
-        {
-            if (Clients.Group("accountMicroservice") != null)
-            {
-                return Clients.Group("accountMicroservice").SendAsync("AvatarUpload", appId, accountPhoneNumber, imgUrl);
-            }
-            else
-            {
-                return Clients.All.SendAsync("AvatarUpload", appId, accountPhoneNumber, imgUrl);
-            }
-        }
-        public Task CoverUpload(string appId, string accountPhoneNumber, string imgUrl)
-        {
-            if (Clients.Group("accountMicroservice") != null)
-            {
-                return Clients.Group("accountMicroservice").SendAsync("CoverUpload", appId, accountPhoneNumber, imgUrl);
-            }
-            else
-            {
-                return Clients.All.SendAsync("CoverUpload", appId, accountPhoneNumber, imgUrl);
-            }
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("UpdateProfile", Context.User.Identity.Name, request);
         }
 
-        public Task UpdateProfileSuccess(string appId, AccountDto response)
+        public Task AvatarUpload(string imgUrl)
         {
-            return Clients.All.SendAsync($"UpdateProfileSuccess{appId}", response);
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("AvatarUpload", Context.User.Identity.Name, imgUrl);
         }
 
-        public Task UpdateProfileFailed(string appId, string reasonMsg)
+        public Task CoverUpload(string imgUrl)
         {
-            return Clients.All.SendAsync($"UpdateProfileFailed{appId}", reasonMsg);
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("CoverUpload", Context.User.Identity.Name, imgUrl);
+        }
+
+        public Task UpdateProfileSuccess(string phoneNumber, AccountDto response)
+        {
+            return Clients.User(phoneNumber)
+                .SendAsync($"UpdateProfileSuccess", response);
+        }
+
+        public Task UpdateProfileFailed(string phoneNumber, string reasonMsg)
+        {
+            return Clients.User(phoneNumber)
+                .SendAsync($"UpdateProfileFailed", reasonMsg);
         }
         #endregion
-
-        public override async Task OnConnectedAsync()
-        {
-            QueryString queryString = Context.GetHttpContext().Request.QueryString;
-            NameValueCollection qs = HttpUtility.ParseQueryString(queryString.ToString());
-            String groupName = qs.Get("groupName");
-            if (groupName != null)
-            {
-                await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-            }
-
-            await base.OnConnectedAsync();
-        }
-
-        public override async Task OnDisconnectedAsync(Exception exception)
-        {
-            QueryString queryString = Context.GetHttpContext().Request.QueryString;
-            NameValueCollection qs = HttpUtility.ParseQueryString(queryString.ToString());
-            String groupName = qs.Get("groupName");
-
-            if (groupName != null)
-            {
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-            }
-
-            await base.OnDisconnectedAsync(exception);
-        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Ping.Commons.Dtos.Models.DataSpace;
 using System;
@@ -10,173 +11,127 @@ using System.Web;
 
 namespace Api.Hubs
 {
+    [Authorize]
     public class DataSpaceHub : Hub
     {
-        public Task DeleteMultipleNodesMetadata(string appId, string phoneNumber, List<SimpleNodeDto> nodes)
+        private static readonly string MicroserviceHandlerIdentifier = "DataspaceMicroservice";
+
+        public Task DeleteMultipleNodesMetadata(List<SimpleNodeDto> nodes)
         {
-            if (Clients.Group("dataspaceMicroservice") != null)
-            {
-                return Clients.Group("dataspaceMicroservice").SendAsync("DeleteMultipleNodesMetadata", appId, phoneNumber, nodes);
-            }
-            else
-            {
-                return Clients.All.SendAsync("DeleteMultipleNodesMetadata", appId, phoneNumber, nodes);
-            }
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("DeleteMultipleNodesMetadata", Context.User.Identity.Name, nodes);
         }
+        
         // Merge into one endpoint?
-        public Task DeleteMultipleNodesMetadataSuccess(string appId, List<SimpleNodeDto> nodes)
+        public Task DeleteMultipleNodesMetadataSuccess(string phoneNumber, List<SimpleNodeDto> nodes)
         {
-            return Clients.All.SendAsync($"DeleteMultipleNodesMetadataSuccess{appId}", nodes);
+            return Clients.User(phoneNumber)
+                .SendAsync($"DeleteMultipleNodesMetadataSuccess", nodes);
         }
 
-        public Task DeleteMultipleNodesMetadataFail(string appId, List<SimpleNodeDto> nodes, string reasonMsg)
+        public Task DeleteMultipleNodesMetadataFail(string phoneNumber, List<SimpleNodeDto> nodes, string reasonMsg)
         {
-            return Clients.All.SendAsync($"DeleteMultipleNodesMetadataFail{appId}", nodes, reasonMsg);
+            return Clients.User(phoneNumber)
+                .SendAsync($"DeleteMultipleNodesMetadataFail", nodes, reasonMsg);
         }
 
         #region SaveDirectoryMetadata / upload file
-        public Task SaveDirectoryMetadata(string appId, string phoneNumber, DirectoryDto directoryDto)
+        public Task SaveDirectoryMetadata(DirectoryDto directoryDto)
         {
-            if (Clients.Group("dataspaceMicroservice") != null)
-            {
-                return Clients.Group("dataspaceMicroservice").SendAsync("SaveDirectoryMetadata", appId, phoneNumber, directoryDto);
-            }
-            else
-            {
-                return Clients.All.SendAsync("SaveDirectoryMetadata", appId, phoneNumber, directoryDto);
-            }
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("SaveDirectoryMetadata", Context.User.Identity.Name, directoryDto);
         }
 
         // TODO, return metadata not only response-string
-        public Task SaveDirectoryMetadataSuccess(string appId, NodeDto dirDto)
+        public Task SaveDirectoryMetadataSuccess(string phoneNumber, NodeDto dirDto)
         {
-            return Clients.All.SendAsync($"SaveDirectoryMetadataSuccess{appId}", dirDto);
+            return Clients.User(phoneNumber)
+                .SendAsync($"SaveDirectoryMetadataSuccess", dirDto);
         }
 
-        public Task SaveDirectoryMetadataFail(string appId, string reasonMsg)
+        public Task SaveDirectoryMetadataFail(string phoneNumber, string reasonMsg)
         {
-            return Clients.All.SendAsync($"SaveDirectoryMetadataFail{appId}", reasonMsg);
-        }
-        public Task DeleteDirectoryMetadata(string appId, string phoneNumber, string directoryPath)
-        {
-            if (Clients.Group("dataspaceMicroservice") != null)
-            {
-                return Clients.Group("dataspaceMicroservice").SendAsync("DeleteDirectoryMetadata", appId, phoneNumber, directoryPath);
-            }
-            else
-            {
-                return Clients.All.SendAsync("DeleteDirectoryMetadata", appId, phoneNumber, directoryPath);
-            }
-        }
-        public Task DeleteDirectoryMetadataSuccess(string appId, string directoryPath)
-        {
-            return Clients.All.SendAsync($"DeleteDirectoryMetadataSuccess{appId}", directoryPath);
+            return Clients.User(phoneNumber)
+                .SendAsync($"SaveDirectoryMetadataFail", reasonMsg);
         }
 
-        public Task DeleteDirectoryMetadataFail(string appId, string directoryPath, string reasonMsg)
+        public Task DeleteDirectoryMetadata(string directoryPath)
         {
-            return Clients.All.SendAsync($"DeleteDirectoryMetadataFail{appId}", directoryPath, reasonMsg);
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("DeleteDirectoryMetadata", Context.User.Identity.Name, directoryPath);
+        }
+        public Task DeleteDirectoryMetadataSuccess(string phoneNumber, string directoryPath)
+        {
+            return Clients.User(phoneNumber)
+                .SendAsync($"DeleteDirectoryMetadataSuccess", directoryPath);
+        }
+
+        public Task DeleteDirectoryMetadataFail(string phoneNumber, string directoryPath, string reasonMsg)
+        {
+            return Clients.User(phoneNumber)
+                .SendAsync($"DeleteDirectoryMetadataFail", directoryPath, reasonMsg);
         }
         #endregion
 
         #region DeleteFileMetadata
-        public Task DeleteFileMetadata(string appId, string phonenumber, string filePath)
+        public Task DeleteFileMetadata(string filePath)
         {
-            if (Clients.Group("dataspaceMicroservice") != null)
-            {
-                return Clients.Group("dataspaceMicroservice").SendAsync("DeleteFileMetadata", appId, phonenumber, filePath);
-            }
-            else
-            {
-                return Clients.All.SendAsync("DeleteFileMetadata", appId, phonenumber, filePath);
-            }
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("DeleteFileMetadata", Context.User.Identity.Name, filePath);
         }
-        public Task DeleteFileMetadataSuccess(string appId, string filePath)
+        public Task DeleteFileMetadataSuccess(string phoneNumber, string filePath)
         {
-            return Clients.All.SendAsync($"DeleteFileMetadataSuccess{appId}", filePath);
+            return Clients.User(phoneNumber)
+                .SendAsync($"DeleteFileMetadataSuccess", filePath);
         }
 
-        public Task DeleteFileMetadataFail(string appId, string filePath, string reasonMsg)
+        public Task DeleteFileMetadataFail(string phoneNumber, string filePath, string reasonMsg)
         {
-            return Clients.All.SendAsync($"DeleteFileMetadataFail{appId}", filePath, reasonMsg);
+            return Clients.User(phoneNumber)
+                .SendAsync($"DeleteFileMetadataFail", filePath, reasonMsg);
         }
         #endregion
 
         #region SaveFileMetadata / upload file
-        public Task SaveFileMetadata(string appId, string phonenumber, FileDto fileDto)
+        public Task SaveFileMetadata(FileDto fileDto)
         {
-            if (Clients.Group("dataspaceMicroservice") != null)
-            {
-                return Clients.Group("dataspaceMicroservice").SendAsync("SaveFileMetadata", appId, phonenumber, fileDto);
-            }
-            else
-            {
-                return Clients.All.SendAsync("SaveFileMetadata", appId, phonenumber, fileDto);
-            }
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("SaveFileMetadata", Context.User.Identity.Name, fileDto);
         }
 
         // TODO, return metadata not only response-string
-        public Task SaveFileMetadataSuccess(string appId, NodeDto fileDto)
+        public Task SaveFileMetadataSuccess(string phoneNumber, NodeDto fileDto)
         {
-            return Clients.All.SendAsync($"UploadFileSuccess{appId}", fileDto);
+            return Clients.User(phoneNumber)
+                .SendAsync($"UploadFileSuccess", fileDto);
         }
 
-        public Task SaveFileMetadataFail(string appId, string reasonMsg)
+        public Task SaveFileMetadataFail(string phoneNumber, string reasonMsg)
         {
-            return Clients.All.SendAsync($"UploadFileFail{appId}", reasonMsg);
+            return Clients.User(phoneNumber)
+                .SendAsync($"UploadFileFail", reasonMsg);
         }
         #endregion
 
         #region RequestFilesMetadata / get list of files and dirs
-        public Task RequestFilesMetaData(string appId, string phoneNumber)
+        public Task RequestFilesMetaData()
         {
-            if (Clients.Group("dataspaceMicroservice") != null)
-            {
-                return Clients.Group("dataspaceMicroservice").SendAsync("RequestFilesMetaData", appId, phoneNumber);
-            }
-            else
-            {
-                return Clients.All.SendAsync("RequestFilesMetaData", appId, phoneNumber);
-            }
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("RequestFilesMetaData", Context.User.Identity.Name);
         }
 
         // TODO, return metadata not only response-string
-        public Task RequestFilesMetaDataSuccess(string appId, DataSpaceMetadata fileDto)
+        public Task RequestFilesMetaDataSuccess(string phoneNumber, DataSpaceMetadata fileDto)
         {
-            return Clients.All.SendAsync($"RequestFilesMetaDataSuccess{appId}", fileDto);
+            return Clients.User(phoneNumber)
+                .SendAsync($"RequestFilesMetaDataSuccess", fileDto);
         }
 
-        public Task RequestFileMetaDataFail(string appId, string reasonMsg)
+        public Task RequestFileMetaDataFail(string phoneNumber, string reasonMsg)
         {
-            return Clients.All.SendAsync($"RequestFilesMetaDataFail{appId}", reasonMsg);
+            return Clients.User(phoneNumber)
+                .SendAsync($"RequestFilesMetaDataSuccess", reasonMsg);
         }
         #endregion
-
-        public override async Task OnConnectedAsync()
-        {
-            QueryString queryString = Context.GetHttpContext().Request.QueryString;
-            NameValueCollection qs = HttpUtility.ParseQueryString(queryString.ToString());
-            String groupName = qs.Get("groupName");
-            if (groupName != null)
-            {
-                await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-            }
-
-            await base.OnConnectedAsync();
-        }
-
-        public override async Task OnDisconnectedAsync(Exception exception)
-        {
-            QueryString queryString = Context.GetHttpContext().Request.QueryString;
-            NameValueCollection qs = HttpUtility.ParseQueryString(queryString.ToString());
-            String groupName = qs.Get("groupName");
-
-            if (groupName != null)
-            {
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-            }
-
-            await base.OnDisconnectedAsync(exception);
-        }
     }
 }
