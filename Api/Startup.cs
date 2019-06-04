@@ -36,7 +36,7 @@ namespace Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            // Cors
+            // Add CORS Policy - allow requests only from our app's origins
             services.AddCors(options => options.AddPolicy(AddCorsPolicy, builder =>
             {
                 builder
@@ -46,16 +46,17 @@ namespace Api
                 .AllowCredentials();
             }));
 
-            // Jwt authentication// configure strongly typed settings objects
+            // JWT Authentication - use tokens for authenticating and authorizing requests
             var appSettingsSection = Configuration.GetSection("SecuritySettings");
-            services.Configure<SecuritySettings>(appSettingsSection);
 
-            // configure jwt authentication
+            services.Configure<SecuritySettings>(appSettingsSection); // Dependency Injection of our appsettings security section
+
             var appSettings = appSettingsSection.Get<SecuritySettings>();
             var secretKey = Encoding.ASCII.GetBytes(appSettings.Secret);
 
             services.AddAuthentication(options =>
             {
+                // Use Bearer (the below one) authentication scheme
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
@@ -69,12 +70,12 @@ namespace Api
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+                    IssuerSigningKey = new SymmetricSecurityKey(secretKey), // Crucial: this is what we'll check all tokens against
                     ValidateLifetime = true,
-                    LifetimeValidator = (before, expires, token, param) => expires > DateTime.UtcNow,
+                    LifetimeValidator = (before, expires, token, param) => expires > DateTime.UtcNow, // Check whether a request's token is expired
                 };
-
                 // Hook a JWT authentication handler to the OnMessageReceived event (WS connections and SS events)
+                //  --- We want to set the token to our Context, so we can use this to authorize requests within hubs etc.
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context => {
@@ -82,7 +83,7 @@ namespace Api
 
                         if (!string.IsNullOrEmpty(accessToken))
                         {
-                            context.Token = accessToken; // Read the token out of the query string
+                            context.Token = accessToken; // Read and set the token out of the query string
                         }
 
                         return Task.CompletedTask;
@@ -90,21 +91,21 @@ namespace Api
                 };
             });
 
-
             // Service layer
             services.AddSingleton<IAccountSignalRClient, AccountSignalRClient>();
             services.AddSingleton<IDataSpaceSignalRClient, DataSpaceSignalRClient>();
 
-            // Signalr
+            // Signalr - add signalr and also use our custom UserClaim identity provider
             services.AddSingleton<IUserIdProvider, UserClaimIdentifierProvider>();
             services.AddSignalR(options =>
             {
                 options.EnableDetailedErrors = true;
             });
 
-            // Mvc/Api
+            // Mvc-Api
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
+            // Configure our upload size limit
             services.Configure<FormOptions>(x =>
             {
                 x.MultipartBodyLengthLimit = 104_857_600;
@@ -132,19 +133,22 @@ namespace Api
 
             app.UseStaticFiles();
             
+            // Map signalR hubs
             app.UseSignalR(routes =>
             {
                 routes.MapHub<AccountHub>("/accounthub", options =>
                 {
-                    // set to 10mb max
+                    // Set hub's buffer limit in bytes
                     options.ApplicationMaxBufferSize = 100 * 1024;
                 });
-                routes.MapHub<AuthHub>("/authhub");
+
                 routes.MapHub<DataSpaceHub>("/dataspacehub", options =>
                 {
                     options.ApplicationMaxBufferSize = 10_000 * 1024;
                 });
-                //routes.MapHub<ContactsHub>("/contactshub");
+
+                routes.MapHub<AuthHub>("/authhub");
+
                 routes.MapHub<ChatHub>("/chathub");
             });
 

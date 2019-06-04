@@ -23,10 +23,9 @@ namespace Api
                 .UseStartup<Startup>()
                 .ConfigureKestrel(options =>
                 {
-                    options.Limits.MaxRequestBodySize = 100000 * 1024;
+                    options.Limits.MaxRequestBodySize = 100_000 * 1024; // Set Kestrel's upload limit in bytes
                 })
-                .UseUrls()
-                .UseUrls(new string[] { "https://192.168.1.2:44380", "http://192.168.1.2:18458" });
+                .UseUrls(new string[] { "https://192.168.1.2:44380", "http://192.168.1.2:18458" }); // Set the http and https urls
 
 
     }
