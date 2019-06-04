@@ -1,23 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Api.Helpers;
 using Api.Hubs;
 using Api.SignalR.ClientServices;
 using Api.SignalR.ClientServices.Impl;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Hosting.Internal;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Ping.Commons.Settings;
 
 namespace Api
 {
@@ -38,6 +36,7 @@ namespace Api
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // Cors
             services.AddCors(options => options.AddPolicy(AddCorsPolicy, builder =>
             {
                 builder
@@ -47,13 +46,63 @@ namespace Api
                 .AllowCredentials();
             }));
 
+            // Jwt authentication// configure strongly typed settings objects
+            var appSettingsSection = Configuration.GetSection("SecuritySettings");
+            services.Configure<SecuritySettings>(appSettingsSection);
+
+            // configure jwt authentication
+            var appSettings = appSettingsSection.Get<SecuritySettings>();
+            var secretKey = Encoding.ASCII.GetBytes(appSettings.Secret);
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateActor = false,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+                    ValidateLifetime = true,
+                    LifetimeValidator = (before, expires, token, param) => expires > DateTime.UtcNow,
+                };
+
+                // Hook a JWT authentication handler to the OnMessageReceived event (WS connections and SS events)
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context => {
+                        var accessToken = context.Request.Query["access_token"];
+
+                        if (!string.IsNullOrEmpty(accessToken))
+                        {
+                            context.Token = accessToken; // Read the token out of the query string
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+
+
+            // Service layer
             services.AddSingleton<IAccountSignalRClient, AccountSignalRClient>();
             services.AddSingleton<IDataSpaceSignalRClient, DataSpaceSignalRClient>();
+
+            // Signalr
+            services.AddSingleton<IUserIdProvider, UserClaimIdentifierProvider>();
             services.AddSignalR(options =>
             {
                 options.EnableDetailedErrors = true;
             });
 
+            // Mvc/Api
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services.Configure<FormOptions>(x =>
@@ -78,6 +127,9 @@ namespace Api
             }
 
             app.UseCors(AddCorsPolicy);
+
+            app.UseAuthentication();
+
             app.UseStaticFiles();
             
             app.UseSignalR(routes =>
