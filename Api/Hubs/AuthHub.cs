@@ -42,7 +42,7 @@ namespace Api.Hubs
         }
 
         #region Auth-Login Hub Endpoints
-        public Task RequestAuthentication(string appId, AccountLoginDto request)
+        public Task RequestAuthentication(string appId, AccountDto request)
         {
             if (Clients.Group("accountMicroservice") != null)
             {
@@ -66,7 +66,7 @@ namespace Api.Hubs
         #endregion
 
         #region Auth-Register Hub Endpoints
-        public Task RequestRegistration(string appId, AccountRegisterDto request)
+        public Task RequestRegistration(string appId, AccountDto request)
         {
             if (Clients.Group("accountMicroservice") != null)
             {

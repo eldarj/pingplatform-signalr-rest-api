@@ -18,13 +18,13 @@ namespace Api.Controllers
 
         // POST: api/authenticate
         [HttpPost]
-        public async Task<IActionResult> Authenticate([FromBody] AccountLoginDto RequestModel)
+        public async Task<IActionResult> Authenticate([FromBody] AccountDto RequestModel)
         {
             // provjeri postoji li s ovim telefonom
             // ako postoji provjeri uradi auth
             // ako ne postoji bad request
 
-            AccountDto pox = await accountSignalRClient.Authenticate<AccountDto, AccountLoginDto>(RequestModel);
+            AccountDto pox = await accountSignalRClient.Authenticate<AccountDto, AccountDto>(RequestModel);
 
 
             return Ok(pox);
