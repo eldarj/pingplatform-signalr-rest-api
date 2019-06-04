@@ -22,7 +22,6 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using Api.SignalR.ClientServices;
 using Ping.Commons.Dtos.Models.DataSpace;
-using Api.Filters.Binding;
 
 namespace Api.Controllers
 {
