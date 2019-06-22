@@ -11,6 +11,7 @@ namespace Api.Helpers
     {
         public virtual string GetUserId(HubConnectionContext connection)
         {
+            // Use the user's Name claim value as the UserId ie. UserClaimIdentifier
             return connection.User?.FindFirst(ClaimTypes.Name)?.Value;
         }
     }

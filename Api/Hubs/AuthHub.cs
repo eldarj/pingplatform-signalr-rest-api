@@ -21,22 +21,24 @@ namespace Api.Hubs
         private static readonly string MicroserviceHandlerIdentifier = "AccountMicroservice";
 
         #region Authenticate
-        public Task RequestAuthentication(AccountDto request)
+        public Task RequestAuthentication(string anonymousIdentifier, AccountDto request)
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("RequestAuthentication", request);
+                .SendAsync("RequestAuthentication", anonymousIdentifier, request);
         }
 
-        public Task AuthenticationDone(AccountDto request)
+        public Task AuthenticationDone(string anonymousIdentifier, AccountDto request)
         {
             return Clients.All
-                .SendAsync($"AuthenticationDone{request.PhoneNumber}", request);
+                .SendAsync($"AuthenticationDone{anonymousIdentifier}", request);
         }
 
-        public Task AuthenticationFailed(ResponseDto<AccountDto> responseDto) // TODO: Make all response ResponseDto
+        public Task AuthenticationFailed(string anonymousIdentifier, ResponseDto<AccountDto> responseDto) // TODO: Make all response ResponseDto
         {
+            //return Clients.User(responseDto.Dto.PhoneNumber)
+            //    .SendAsync($"AuthenticationFailed", responseDto);
             return Clients.All
-                .SendAsync($"AuthenticationFailed{responseDto.Dto.PhoneNumber}", responseDto);
+                .SendAsync($"AuthenticationFailed{anonymousIdentifier}", responseDto);
         }
         #endregion
 
@@ -61,23 +63,24 @@ namespace Api.Hubs
         #endregion
 
         #region ContactCodes
-        public Task RequestCallingCodes(string phoneNumber)
+        public Task RequestCallingCodes(string anonymousIdentifier)
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("RequestCallingCodes", phoneNumber);
+                .SendAsync("RequestCallingCodes", anonymousIdentifier);
         }
 
-        public Task ResponseCallingCodes(string phoneNumber, List<CallingCodeDto> callingCodes)
+        // TODO: Fix this to make use of Clients.User(phoneNumber) instead of Clients.All and anonymousIdentifier
+        public Task ResponseCallingCodes(string anonymousIdentifier, List<CallingCodeDto> callingCodes)
         {
             return Clients.All
-                .SendAsync($"ResponseCallingCodes{phoneNumber}", callingCodes);
+                .SendAsync($"ResponseCallingCodes{anonymousIdentifier}", callingCodes);
         }
         #endregion
 
         #region Connected/Disco.
         public override async Task OnConnectedAsync()
         {
-            // TODO: check here - this non-authorized user's ID and save for later use
+            // TODO: check here - this anonymous non-authorized user's ID and save for later use
             await base.OnConnectedAsync();
         }
 
