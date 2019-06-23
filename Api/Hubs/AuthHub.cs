@@ -49,16 +49,16 @@ namespace Api.Hubs
                 .SendAsync("RequestRegistration", request);
         }
 
-        public Task RegistrationDone(string phoneNumber, AccountDto request)
+        public Task RegistrationDone(string anonymousIdentifier, AccountDto request)
         {
             return Clients.All
-                .SendAsync($"RegistrationDone{phoneNumber}", request);
+                .SendAsync($"RegistrationDone{anonymousIdentifier}", request);
         }
 
-        public Task RegistrationFailed(string phoneNumber, string reasonMsg)
+        public Task RegistrationFailed(string anonymousIdentifier, string reasonMsg)
         {
             return Clients.All
-                .SendAsync($"RegistrationFailed{phoneNumber}", reasonMsg);
+                .SendAsync($"RegistrationFailed{anonymousIdentifier}", reasonMsg);
         }
         #endregion
 
