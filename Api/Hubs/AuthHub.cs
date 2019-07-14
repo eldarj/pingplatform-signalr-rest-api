@@ -43,10 +43,10 @@ namespace Api.Hubs
         #endregion
 
         #region Register
-        public Task RequestRegistration(AccountDto request)
+        public Task RequestRegistration(string anonymousIdentifier, AccountDto request)
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("RequestRegistration", request);
+                .SendAsync("RequestRegistration", anonymousIdentifier, request);
         }
 
         public Task RegistrationDone(string anonymousIdentifier, AccountDto request)
