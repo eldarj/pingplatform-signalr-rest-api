@@ -332,3 +332,5 @@ ASALocalRun/
 
 #DataSpace
 Api/wwwroot/DataSpace/*
+Api/wwwroot/Users/Avatars/*
+Api/wwwroot/Users/Covers/*
