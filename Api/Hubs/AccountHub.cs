@@ -17,7 +17,7 @@ namespace Api.Hubs
         private static readonly string MicroserviceHandlerIdentifier = "AccountMicroservice";
 
         #region Update
-        public Task UpdateProfile(AccountDto request)
+        public Task UpdateProfile(AccountDto request) // TODO Update whole profile
         {
             return Clients.User(MicroserviceHandlerIdentifier)
                 .SendAsync("UpdateProfile", Context.User.Identity.Name, request);
