@@ -9,7 +9,7 @@ namespace Ping.Commons.Settings
     public static class JWTokenHandler
     {
         // Generates a JWT Token for authentication, using a client identifier string (app-end-user id. or microservice id.) and signing it with a secret key
-        //  --- The client identifier string is used to generate a Claim of type Claim.Name
+        //  --- The client identifier string is used to generate a Claim of type Claim.NameIdentifier
         //  --- The secret signing key is later used for token decrypt.
         public static string GenerateToken(string clientIdentifier, string secret)
         {
@@ -19,7 +19,7 @@ namespace Ping.Commons.Settings
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, clientIdentifier)
+                    new Claim(ClaimTypes.NameIdentifier, clientIdentifier)
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature) // sign using hmac
