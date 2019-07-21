@@ -50,6 +50,7 @@ namespace Api
             var appSettingsSection = Configuration.GetSection("SecuritySettings");
 
             services.Configure<SecuritySettings>(appSettingsSection); // Dependency Injection of our appsettings security section
+            services.Configure<GatewayBaseSettings>(Configuration.GetSection("GatewayBaseSettings"));
 
             var appSettings = appSettingsSection.Get<SecuritySettings>();
             var secretKey = Encoding.ASCII.GetBytes(appSettings.Secret);
@@ -92,7 +93,7 @@ namespace Api
             });
 
             // Service layer
-            services.AddSingleton<IAccountSignalRClient, AccountSignalRClient>();
+            services.AddScoped<IAccountSignalRClient, AccountSignalRClient>();
             services.AddSingleton<IDataSpaceSignalRClient, DataSpaceSignalRClient>();
 
             // Signalr - add signalr and also use our custom UserClaim identity provider

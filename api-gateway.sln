@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Api.SignalR", "Api.SignalR\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ping.Commons.Dtos", "Ping.Commons.Dtos\Ping.Commons.Dtos.csproj", "{61FA841C-5733-4C79-81C6-675892163A8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ping.Commons.Settings", "Ping.Commons.Settings\Ping.Commons.Settings.csproj", "{0684F067-C6DA-4A70-A2AD-B599B1AF3BC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ping.Commons.Settings", "Ping.Commons.Settings\Ping.Commons.Settings.csproj", "{0684F067-C6DA-4A70-A2AD-B599B1AF3BC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ping.Commons.SignalR", "Ping.Commons.SignalR\Ping.Commons.SignalR.csproj", "{56171085-1FBA-416B-A0E5-920A9B8CA180}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{0684F067-C6DA-4A70-A2AD-B599B1AF3BC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0684F067-C6DA-4A70-A2AD-B599B1AF3BC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0684F067-C6DA-4A70-A2AD-B599B1AF3BC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56171085-1FBA-416B-A0E5-920A9B8CA180}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56171085-1FBA-416B-A0E5-920A9B8CA180}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56171085-1FBA-416B-A0E5-920A9B8CA180}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56171085-1FBA-416B-A0E5-920A9B8CA180}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

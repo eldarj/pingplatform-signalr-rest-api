@@ -47,5 +47,19 @@ namespace Api.Hubs
                 .SendAsync($"UpdateProfileFailed", reasonMsg);
         }
         #endregion
+
+        #region Connected/Disco.
+        public override async Task OnConnectedAsync()
+        {
+            // TODO: check here - this anonymous non-authorized user's ID and save for later use
+            await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            // TODO: check here - this non-authorized user's ID and save for later use
+            await base.OnDisconnectedAsync(exception);
+        }
+        #endregion
     }
 }

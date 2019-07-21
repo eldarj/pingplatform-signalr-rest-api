@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Ping.Commons.Dtos\Ping.Commons.Dtos.csproj" />
+    <ProjectReference Include="..\Ping.Commons.SignalR\Ping.Commons.SignalR.csproj" />
   </ItemGroup>
 
 </Project>

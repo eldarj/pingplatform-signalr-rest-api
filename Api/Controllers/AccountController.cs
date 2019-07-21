@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Api.Controllers.Base;
+using Api.DtoModels.Auth;
 using Api.SignalR.ClientServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Ping.Commons.Dtos.Models.Various;
 
@@ -21,7 +25,7 @@ namespace Api.Controllers
         public AccountController(IHostingEnvironment hostingEnvironment, IAccountSignalRClient accountSignalRClient) 
             : base(accountSignalRClient)
         {
-            appEnv = hostingEnvironment;
+            this.appEnv = hostingEnvironment;
         }
         // UPLOAD COVER IMAGE: api/account/profile/cover
 
@@ -63,11 +67,15 @@ namespace Api.Controllers
         }
 
         // UPLOAD AVATAR IMAGE: api/account/profile/avatar
-        [HttpPost]
         [Route("profile/avatar")]
         [HttpPost]
-        public IActionResult AvatarUpload([FromBody] ImageUploadRequest request)
+        public IActionResult AvatarUploadAsync([FromBody] ImageUploadRequest request)
         {
+            ClaimsPrincipal currentUserClaimsPrincipal = User;
+            var currentUserIdentity = User.Identity;
+            var currentUserID = currentUserClaimsPrincipal.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var currentUserName = currentUserClaimsPrincipal.FindFirst(ClaimTypes.Name)?.Value;
+
             if (request.PhoneNumber == null || !(request.PhoneNumber.Length > 0))
             {
                 return BadRequest("Missing phone number (auth.)");
