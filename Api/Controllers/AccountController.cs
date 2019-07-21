@@ -16,8 +16,9 @@ using Ping.Commons.Dtos.Models.Various;
 
 namespace Api.Controllers
 {
-    [Route("api/account")]
+    [Authorize]
     [ApiController]
+    [Route("api/account")]
     public class AccountController : ApiBaseController
     {
         private readonly IHostingEnvironment appEnv;
@@ -34,10 +35,6 @@ namespace Api.Controllers
         [HttpPost]
         public IActionResult CoverUpload([FromBody] ImageUploadRequest request) // TODO: Chance ImageUploadRequest to integrate IFormFile
         {
-            if (request.PhoneNumber == null || !(request.PhoneNumber.Length > 0))
-            {
-                return BadRequest("Missing phone number (auth.)");
-            }
             if (request.Base64Image == null || !(request.Base64Image.Length > 0))
             {
                 return BadRequest("Missing base64 encoded image string.");
@@ -45,7 +42,9 @@ namespace Api.Controllers
 
             try
             {
-                string Filename = GenerateFileName(request);
+                string clientIdentifier = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                string Filename = GenerateFileName(clientIdentifier, request);
                 string UploadsDir = Path.Combine(appEnv.WebRootPath, "users/covers");
                 string WritePath = Path.Combine(UploadsDir, Filename); // Pripremi path i ime slike
 
@@ -55,7 +54,7 @@ namespace Api.Controllers
                 string imgUploadedTo = "https://localhost:44380/users/covers/" + Filename;
 
                 // save the url
-                accountSignalRClient.CoverUpload(request.appId, request.PhoneNumber, imgUploadedTo);
+                accountSignalRClient.CoverUpload(clientIdentifier, imgUploadedTo);
 
                 return NoContent();
             }
@@ -71,15 +70,6 @@ namespace Api.Controllers
         [HttpPost]
         public IActionResult AvatarUploadAsync([FromBody] ImageUploadRequest request)
         {
-            ClaimsPrincipal currentUserClaimsPrincipal = User;
-            var currentUserIdentity = User.Identity;
-            var currentUserID = currentUserClaimsPrincipal.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var currentUserName = currentUserClaimsPrincipal.FindFirst(ClaimTypes.Name)?.Value;
-
-            if (request.PhoneNumber == null || !(request.PhoneNumber.Length > 0))
-            {
-                return BadRequest("Missing phone number (auth.)");
-            }
             if (request.Base64Image == null || !(request.Base64Image.Length > 0))
             {
                 return BadRequest("Missing base64 encoded image string.");
@@ -87,7 +77,9 @@ namespace Api.Controllers
 
             try
             {
-                string Filename = GenerateFileName(request);
+                string clientIdentifier = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                string Filename = GenerateFileName(clientIdentifier, request);
                 string UploadsDir = Path.Combine(appEnv.WebRootPath, "users/avatars");
                 string WritePath = Path.Combine(UploadsDir, Filename); // Pripremi path i ime slike
 
@@ -97,7 +89,7 @@ namespace Api.Controllers
                 string imgUploadedTo = "https://localhost:44380/users/avatars/" + Filename;
 
                 // save the url
-                accountSignalRClient.AvatarUpload(request.appId, request.PhoneNumber, imgUploadedTo);
+                accountSignalRClient.AvatarUpload(clientIdentifier, imgUploadedTo);
 
                 return NoContent();
             }
@@ -108,10 +100,10 @@ namespace Api.Controllers
             }
         }
 
-        private static string GenerateFileName(ImageUploadRequest request)
+        private static string GenerateFileName(string userIdentifier, ImageUploadRequest request)
         {
-            // Example: EldarJahijagic_filename_GUID.jpeg
-            return request.Firstname + request.Lastname + "_" + request.FileName + "_" +
+            // Example: 387615005051852_filename_9512.jpeg
+            return userIdentifier + "_" + request.FileName + "_" +
                 Guid.NewGuid().ToString().Substring(0, 4) + "." + request.FileExtension;
         }
     }

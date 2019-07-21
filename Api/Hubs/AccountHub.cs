@@ -23,16 +23,16 @@ namespace Api.Hubs
                 .SendAsync("UpdateProfile", Context.User.Identity.Name, request);
         }
 
-        public Task AvatarUpload(string imgUrl)
+        public Task AvatarUpload(string phoneNumber, string imgUrl)
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("AvatarUpload", Context.User.Identity.Name, imgUrl);
+                .SendAsync("AvatarUpload", phoneNumber, imgUrl);
         }
 
-        public Task CoverUpload(string imgUrl)
+        public Task CoverUpload(string phoneNumber, string imgUrl)
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("CoverUpload", Context.User.Identity.Name, imgUrl);
+                .SendAsync("CoverUpload", phoneNumber, imgUrl);
         }
 
         public Task UpdateProfileSuccess(string phoneNumber, AccountDto response)

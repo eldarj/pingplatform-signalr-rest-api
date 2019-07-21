@@ -15,6 +15,7 @@ namespace Api.SignalR.ClientServices.Impl
             IOptions<SecuritySettings> securityOptions)
             : base(gatewayBaseOptions, securityOptions, HUB_ENDPOINT)
         {
+            this.Connect(); // Self-start connection
         }
 
         public async void Connect()
@@ -24,10 +25,13 @@ namespace Api.SignalR.ClientServices.Impl
                 if (t.IsFaulted)
                 {
                     //logger.LogInformation("-- Couln't connect to SignalR AccountHub (OnStarted)");
+                    string pxo = "yes";
+
                     return;
                 }
                 //logger.LogInformation("AccountMicroservice connected to AuthHub successfully (OnStarted)");
                 //this.RegisterHandlers(); // We won't be registering any handlers from here
+                string po = "yes";
             });
         }
 
@@ -42,14 +46,13 @@ namespace Api.SignalR.ClientServices.Impl
             return hubConnection.InvokeAsync<T>("GetAccounts");
         }
 
-        public void AvatarUpload(string appId, string accountPhoneNumber, string avatarImgUrl)
+        public void AvatarUpload(string accountPhoneNumber, string avatarImgUrl)
         {
-            //Connection.SendAsync("AvatarUpload", appId, accountPhoneNumber, avatarImgUrl);
-            hubConnection.SendAsync("AvatarUpload", avatarImgUrl);
+            hubConnection.SendAsync("AvatarUpload", accountPhoneNumber, avatarImgUrl);
         }
-        public void CoverUpload(string appId, string accountPhoneNumber, string coverImgUrl)
+        public void CoverUpload(string accountPhoneNumber, string coverImgUrl)
         {
-            hubConnection.SendAsync("CoverUpload", appId, accountPhoneNumber, coverImgUrl);
+            hubConnection.SendAsync("CoverUpload", accountPhoneNumber, coverImgUrl);
         }
     }
 }

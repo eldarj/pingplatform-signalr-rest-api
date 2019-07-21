@@ -8,8 +8,8 @@ namespace Api.SignalR.ClientServices
 {
     public interface IAccountSignalRClient
     {
-        void AvatarUpload(string appId, string accountPhoneNumber, string avatarImgUrl);
-        void CoverUpload(string appId, string accountPhoneNumber, string coverImgUrl);
+        void AvatarUpload(string accountPhoneNumber, string avatarImgUrl);
+        void CoverUpload(string accountPhoneNumber, string coverImgUrl);
 
         Task<T> GetAccounts<T>();
 
