@@ -7,8 +7,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Http;
 using Ping.Commons.Dtos.Models.Wrappers.Response;
+using Ping.Commons.SignalR.Extensions;
 using Ping.Commons.Dtos.Models.Auth;
 using Ping.Commons.Dtos.Models.Chat;
+using System.Security.Claims;
 
 namespace Api.Hubs
 {
@@ -23,7 +25,7 @@ namespace Api.Hubs
             newMessageDto.Sender = Context.User.Identity.Name;
 
             Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("SendMessage", Context.User.Identity.Name, newMessageDto);
+                .SendAsync("SendMessage", this.NameIdentifier(), newMessageDto);
 
             return Clients.User(newMessageDto.Receiver)
                 .SendAsync($"ReceiveMessage", newMessageDto);
@@ -34,12 +36,12 @@ namespace Api.Hubs
         public Task UpdateContact(ContactDto contactDto) // TODO: Wrap this up
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("UpdateContact", Context.User.Identity.Name, contactDto);
+                .SendAsync("UpdateContact", this.NameIdentifier(), contactDto);
         }
         public Task AddContact(ContactDto newContactDto)
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("AddContact", Context.User.Identity.Name, newContactDto);
+                .SendAsync("AddContact", this.NameIdentifier(), newContactDto);
         }
 
         public Task AddContactResponse(string phoneNumber, ResponseDto<ContactDto> contactDto)
@@ -59,7 +61,7 @@ namespace Api.Hubs
         public Task RequestContacts()
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("RequestContacts", Context.User.Identity.Name);
+                .SendAsync("RequestContacts", this.NameIdentifier());
         }
 
         public Task RequestContactsSuccess(string phoneNumber, List<ContactDto> contactDto)
