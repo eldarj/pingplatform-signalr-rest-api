@@ -9,5 +9,6 @@ namespace Ping.Commons.Dtos.Models.Wrappers.Response
         public T Dto { get; set; }
         public string Message { get; set; }
         public string MessageCode { get; set; }
+        public bool Success { get; set; } = true;
     }
 }
