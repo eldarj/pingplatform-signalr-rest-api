@@ -7,9 +7,8 @@ namespace Ping.Commons.Dtos.Models.Emojis
     public class EmojiDto
     {
         public string Name { get; set; }
-        public string Decimal { get; set; }
-        public string Unicode { get; set; }
-        public string Hex { get; set; }
+        public string Shortcode { get; set;  }
+        public string HexCodePoint { get; set; }
         public string Category { get; set; }
     }
 }
