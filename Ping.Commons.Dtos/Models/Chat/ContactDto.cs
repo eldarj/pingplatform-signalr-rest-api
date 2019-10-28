@@ -1,9 +1,10 @@
 ﻿using Ping.Commons.Dtos.Models.Chat;
+using Ping.Commons.Dtos.Models.Various;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Ping.Commons.Dtos.Models.Auth
+namespace Ping.Commons.Dtos.Models.Chat
 {
     public class ContactDto
     {
@@ -18,6 +19,6 @@ namespace Ping.Commons.Dtos.Models.Auth
         public bool IsFavorite { get; set; } = false;
         public string AvatarImageUrl { get; set; }
         public string CoverImageUrl { get; set; }
-        public ICollection<MessageDto> Messages { get; set; }
+        public PagedList<MessageDto> Messages { get; set; }
     }
 }

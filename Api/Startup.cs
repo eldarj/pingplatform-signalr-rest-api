@@ -31,6 +31,9 @@ namespace Api
         private readonly string AddCorsPolicy = "AllowedOrigins";
         private readonly string[] MicroservicesAllowedOrigins = new string[] {
             "https://localhost:3000",
+            "http://localhost:3000",
+            "http://localhost:4200",
+            "https://localhost:4200",
             "https://localhost:44353"
         };
 

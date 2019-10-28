@@ -1,67 +1,59 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Options;
 using Ping.Commons.Dtos.Models.DataSpace;
+using Ping.Commons.Settings;
+using Ping.Commons.SignalR.Base;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Api.SignalR.ClientServices.Impl
 {
-    public class DataSpaceSignalRClient : BaseServiceClient, IDataSpaceSignalRClient
+    public class DataSpaceSignalRClient : BaseHubClientService, IDataSpaceSignalRClient
     {
-        public DataSpaceSignalRClient()
+        private static readonly string HUB_ENDPOINT = "dataspacehub";
+
+        public DataSpaceSignalRClient(IOptions<GatewayBaseSettings> gatewayBaseOptions,
+            IOptions<SecuritySettings> securityOptions)
+            : base(gatewayBaseOptions, securityOptions, HUB_ENDPOINT)
         {
             this.Connect();
         }
 
-        protected override void Connect()
+        public async void Connect()
         {
-            base.Connection = new HubConnectionBuilder()
-                .WithUrl("https://localhost:44380/dataspacehub")
-                .Build();
-
-            try
+            await hubConnection.StartAsync().ContinueWith(t =>
             {
-                base.Connection.StartAsync().ContinueWith(task =>
+                if (t.IsFaulted)
                 {
-                    if (task.IsFaulted)
-                    {
-                        //
-                    }
-                    else
-                    {
-                        //
-                    }
-                }).Wait();
-            }
-            catch (Exception ex)
-            {
-                //
-            }
+                    return;
+                }
+            });
         }
 
-        public void SaveFileMetadata(string appId, string phonenumber, FileDto fileUploadDto)
+        public void SaveFileMetadata(string phonenumber, FileDto fileUploadDto)
         {
-            Connection.SendAsync("SaveFileMetadata", appId, phonenumber, fileUploadDto);
+            hubConnection.SendAsync("SaveFileMetadata", phonenumber, fileUploadDto);
         }
 
-        public void DeleteFileMetadata(string appId, string phonenumber, string filename)
+        public void DeleteFileMetadata(string phonenumber, string filename)
         {
-            Connection.SendAsync("DeleteFileMetadata", appId, phonenumber, filename);
+            hubConnection.SendAsync("DeleteFileMetadata", phonenumber, filename);
         }
 
-        public void DeleteDirectoryMetadata(string appId, string phoneNumber, string directoryPath)
+        public void DeleteDirectoryMetadata(string phoneNumber, string directoryPath)
         {
-            Connection.SendAsync("DeleteDirectoryMetadata", appId, phoneNumber, directoryPath);
+            hubConnection.SendAsync("DeleteDirectoryMetadata", phoneNumber, directoryPath);
         }
 
-        public void SaveDirectoryMetadata(string appId, string phonenumber, DirectoryDto directoryDto)
+        public void SaveDirectoryMetadata(string phonenumber, DirectoryDto directoryDto)
         {
-            Connection.SendAsync("SaveDirectoryMetadata", appId, phonenumber, directoryDto);
+            hubConnection.SendAsync("SaveDirectoryMetadata", phonenumber, directoryDto);
         }
 
-        public void DeleteMultipleNodesMetadata(string appId, string phonenumber, List<SimpleNodeDto> nodes)
+        public void DeleteMultipleNodesMetadata(string phonenumber, List<SimpleNodeDto> nodes)
         {
-            Connection.SendAsync("DeleteMultipleNodesMetadata", appId, phonenumber, nodes);
+            hubConnection.SendAsync("DeleteMultipleNodesMetadata", phonenumber, nodes);
         }
     }
 }

@@ -7,14 +7,14 @@ namespace Api.SignalR.ClientServices
 {
     public interface IDataSpaceSignalRClient
     {
-        void SaveFileMetadata(string appId, string phonenumber, FileDto fileUploadDto);
-        void SaveDirectoryMetadata(string appId, string phoneNumber, DirectoryDto directoryDto);
+        void SaveFileMetadata(string phonenumber, FileDto fileUploadDto);
+        void SaveDirectoryMetadata(string phoneNumber, DirectoryDto directoryDto);
 
-        void DeleteMultipleNodesMetadata(string appId, string phonenumber, List<SimpleNodeDto> nodes);
+        void DeleteMultipleNodesMetadata(string phonenumber, List<SimpleNodeDto> nodes);
 
-        void DeleteFileMetadata(string appId, string phonenumber, string filename);
+        void DeleteFileMetadata(string phonenumber, string filename);
 
-        void DeleteDirectoryMetadata(string appId, string phoneNumber, string directoryPath);
+        void DeleteDirectoryMetadata(string phoneNumber, string directoryPath);
 
     }
 }

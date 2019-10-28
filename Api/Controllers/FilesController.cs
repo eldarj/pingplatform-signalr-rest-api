@@ -96,7 +96,7 @@ namespace Api.Controllers
             var appId = Request.Headers["AppId"];
             var phonenumber = Request.Headers["OwnerPhoneNumber"];
 
-            dataSpaceSignalRClient.DeleteMultipleNodesMetadata(appId, phonenumber, nodes);
+            dataSpaceSignalRClient.DeleteMultipleNodesMetadata(phonenumber, nodes);
             return NoContent();
         }
 
@@ -125,7 +125,7 @@ namespace Api.Controllers
                 return BadRequest();
             }
 
-            dataSpaceSignalRClient.DeleteFileMetadata(appId, phonenumber, filePath);
+            dataSpaceSignalRClient.DeleteFileMetadata(phonenumber, filePath);
             return NoContent();
         }
 
@@ -221,7 +221,7 @@ namespace Api.Controllers
                                     FileSizeInKB = (int)(targetStream.Length / 1024) // Test
                                 };
 
-                                dataSpaceSignalRClient.SaveFileMetadata(appId, phonenumber, newFile); // rename stuff like this to nodePath
+                                dataSpaceSignalRClient.SaveFileMetadata(phonenumber, newFile); // rename stuff like this to nodePath
                             }
                         }
                         else if (contentDisposition.IsFormDisposition())

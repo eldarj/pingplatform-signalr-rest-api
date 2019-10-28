@@ -27,18 +27,18 @@ namespace Api.Hubs
                 .SendAsync("RequestAuthentication", anonymousIdentifier, request);
         }
 
-        public Task AuthenticationDone(string anonymousIdentifier, AccountDto request)
+        public Task AuthenticationDone(string anonymousIdentifier, ResponseDto<AccountDto> response)
         {
             return Clients.All
-                .SendAsync($"AuthenticationDone{anonymousIdentifier}", request);
+                .SendAsync($"AuthenticationDone{anonymousIdentifier}", response);
         }
 
-        public Task AuthenticationFailed(string anonymousIdentifier, ResponseDto<AccountDto> responseDto) // TODO: Make all response ResponseDto
+        public Task AuthenticationFailed(string anonymousIdentifier, ResponseDto<AccountDto> response) // TODO: Make all response ResponseDto
         {
             //return Clients.User(responseDto.Dto.PhoneNumber)
             //    .SendAsync($"AuthenticationFailed", responseDto);
             return Clients.All
-                .SendAsync($"AuthenticationFailed{anonymousIdentifier}", responseDto);
+                .SendAsync($"AuthenticationFailed{anonymousIdentifier}", response);
         }
         #endregion
 
@@ -49,16 +49,16 @@ namespace Api.Hubs
                 .SendAsync("RequestRegistration", anonymousIdentifier, request);
         }
 
-        public Task RegistrationDone(string anonymousIdentifier, AccountDto request)
+        public Task RegistrationDone(string anonymousIdentifier, ResponseDto<AccountDto> response)
         {
             return Clients.All
-                .SendAsync($"RegistrationDone{anonymousIdentifier}", request);
+                .SendAsync($"RegistrationDone{anonymousIdentifier}", response);
         }
 
-        public Task RegistrationFailed(string anonymousIdentifier, string reasonMsg)
+        public Task RegistrationFailed(string anonymousIdentifier, ResponseDto<AccountDto> response)
         {
             return Clients.All
-                .SendAsync($"RegistrationFailed{anonymousIdentifier}", reasonMsg);
+                .SendAsync($"RegistrationFailed{anonymousIdentifier}", response);
         }
         #endregion
 

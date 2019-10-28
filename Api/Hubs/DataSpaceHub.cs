@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using Ping.Commons.Dtos.Models.DataSpace;
 using System;
 using System.Collections.Generic;
+using Ping.Commons.SignalR.Extensions;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,10 +17,11 @@ namespace Api.Hubs
     {
         private static readonly string MicroserviceHandlerIdentifier = "DataspaceMicroservice";
 
-        public Task DeleteMultipleNodesMetadata(List<SimpleNodeDto> nodes)
+        #region DeleteMultipleNodes
+        public Task DeleteMultipleNodesMetadata(string phoneNumber, List<SimpleNodeDto> nodes)
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("DeleteMultipleNodesMetadata", Context.User.Identity.Name, nodes);
+                .SendAsync("DeleteMultipleNodesMetadata", phoneNumber, nodes);
         }
         
         // Merge into one endpoint?
@@ -34,12 +36,13 @@ namespace Api.Hubs
             return Clients.User(phoneNumber)
                 .SendAsync($"DeleteMultipleNodesMetadataFail", nodes, reasonMsg);
         }
+        #endregion
 
         #region SaveDirectoryMetadata / upload file
-        public Task SaveDirectoryMetadata(DirectoryDto directoryDto)
+        public Task SaveDirectoryMetadata(string phonenumber, DirectoryDto directoryDto)
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("SaveDirectoryMetadata", Context.User.Identity.Name, directoryDto);
+                .SendAsync("SaveDirectoryMetadata", phonenumber, directoryDto);
         }
 
         // TODO, return metadata not only response-string
@@ -55,10 +58,10 @@ namespace Api.Hubs
                 .SendAsync($"SaveDirectoryMetadataFail", reasonMsg);
         }
 
-        public Task DeleteDirectoryMetadata(string directoryPath)
+        public Task DeleteDirectoryMetadata(string phoneNumber, string directoryPath)
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("DeleteDirectoryMetadata", Context.User.Identity.Name, directoryPath);
+                .SendAsync("DeleteDirectoryMetadata", phoneNumber, directoryPath);
         }
         public Task DeleteDirectoryMetadataSuccess(string phoneNumber, string directoryPath)
         {
@@ -74,10 +77,10 @@ namespace Api.Hubs
         #endregion
 
         #region DeleteFileMetadata
-        public Task DeleteFileMetadata(string filePath)
+        public Task DeleteFileMetadata(string phoneNumber, string filePath)
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("DeleteFileMetadata", Context.User.Identity.Name, filePath);
+                .SendAsync("DeleteFileMetadata", phoneNumber, filePath);
         }
         public Task DeleteFileMetadataSuccess(string phoneNumber, string filePath)
         {
@@ -93,10 +96,10 @@ namespace Api.Hubs
         #endregion
 
         #region SaveFileMetadata / upload file
-        public Task SaveFileMetadata(FileDto fileDto)
+        public Task SaveFileMetadata(string phoneNumber, FileDto fileDto)
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("SaveFileMetadata", Context.User.Identity.Name, fileDto);
+                .SendAsync("SaveFileMetadata", phoneNumber, fileDto);
         }
 
         // TODO, return metadata not only response-string
@@ -117,7 +120,7 @@ namespace Api.Hubs
         public Task RequestFilesMetaData()
         {
             return Clients.User(MicroserviceHandlerIdentifier)
-                .SendAsync("RequestFilesMetaData", Context.User.Identity.Name);
+                .SendAsync("RequestFilesMetaData", this.NameIdentifier());
         }
 
         // TODO, return metadata not only response-string
@@ -127,10 +130,10 @@ namespace Api.Hubs
                 .SendAsync($"RequestFilesMetaDataSuccess", fileDto);
         }
 
-        public Task RequestFileMetaDataFail(string phoneNumber, string reasonMsg)
+        public Task RequestFilesMetaDataFail(string phoneNumber, string reasonMsg)
         {
             return Clients.User(phoneNumber)
-                .SendAsync($"RequestFilesMetaDataSuccess", reasonMsg);
+                .SendAsync($"RequestFilesMetaDataFail", reasonMsg);
         }
         #endregion
     }

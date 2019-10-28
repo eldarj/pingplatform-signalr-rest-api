@@ -15,7 +15,7 @@ namespace Api.SignalR.ClientServices.Impl
             IOptions<SecuritySettings> securityOptions)
             : base(gatewayBaseOptions, securityOptions, HUB_ENDPOINT)
         {
-            this.Connect(); // Self-start connection
+            this.Connect();
         }
 
         public async void Connect()
@@ -50,6 +50,7 @@ namespace Api.SignalR.ClientServices.Impl
         {
             hubConnection.SendAsync("AvatarUpload", accountPhoneNumber, avatarImgUrl);
         }
+
         public void CoverUpload(string accountPhoneNumber, string coverImgUrl)
         {
             hubConnection.SendAsync("CoverUpload", accountPhoneNumber, coverImgUrl);

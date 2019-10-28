@@ -63,7 +63,7 @@ namespace Api.Controllers
 
             System.IO.Directory.CreateDirectory(physicalPath);
 
-            dataSpaceSignalRClient.SaveDirectoryMetadata(appId, phonenumber, directoryDto);
+            dataSpaceSignalRClient.SaveDirectoryMetadata(phonenumber, directoryDto);
             return Ok();
         }
 
@@ -95,7 +95,7 @@ namespace Api.Controllers
                 return BadRequest();
             }
 
-            dataSpaceSignalRClient.DeleteDirectoryMetadata(appId, phonenumber, directoryPath);
+            dataSpaceSignalRClient.DeleteDirectoryMetadata(phonenumber, directoryPath);
             return NoContent();
         }
     }

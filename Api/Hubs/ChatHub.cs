@@ -12,6 +12,7 @@ using Ping.Commons.Dtos.Models.Auth;
 using Ping.Commons.Dtos.Models.Chat;
 using System.Security.Claims;
 using Ping.Commons.Dtos.Models.Emojis;
+using Ping.Commons.Dtos.Models.Various;
 
 namespace Api.Hubs
 {
@@ -94,8 +95,21 @@ namespace Api.Hubs
             return Clients.User(phoneNumber)
                 .SendAsync($"RequestContactsFail", errorMessage);
         }
+
+        public Task LoadMessages(int pageNumber)
+        {
+            return Clients.User(MicroserviceHandlerIdentifier)
+                .SendAsync("LoadMessages", this.NameIdentifier(), pageNumber);
+        }
+
+        public Task LoadMessagesSuccess(string phoneNumber, PagedList<MessageDto> response)
+        {
+            return Clients.User(phoneNumber)
+                .SendAsync("LoadMessagesSuccess", response);
+        }
+
         #endregion
-        
+
         // NOT USED::THINK ABOUT USING THIS FOR SENDING OUT NOTIFICATIONS AFTER INVITES
         public Task ContactRegisteredOnPing(string phoneNumber, ContactDto contactDto)
         {
