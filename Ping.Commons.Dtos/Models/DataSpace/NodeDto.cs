@@ -13,6 +13,7 @@ namespace Ping.Commons.Dtos.Models.DataSpace
         public DateTime LastModifiedTime { get; set; } = DateTime.Now;
         public string OwnerFirstname { get; set; }
         public string OwnerLastname { get; set; }
+        public string OwnerFullname {  get { return this.OwnerFirstname + " " + this.OwnerLastname;  } }
         public bool Private { get; set; } = true;
         public string NodeType { get; set; }
 

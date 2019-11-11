@@ -42,19 +42,16 @@ namespace Api.Controllers
         public IActionResult DownloadFile([FromRoute] string username, [FromRoute] string filePath)
         {
             if (String.IsNullOrWhiteSpace(filePath))
-            {
                 return BadRequest();
-            }
 
             string physicalPath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, filePath));
             string acceptHeader = Request.Headers["Accept"];
 
             var provider = new FileExtensionContentTypeProvider();
             string contentType;
+
             if (!provider.TryGetContentType(physicalPath, out contentType) || acceptHeader.Equals("application/octet-stream"))
-            {
                 contentType = "application/octet-stream";
-            }
 
             // OPT 2
             FileStream fs = new FileStream(physicalPath, FileMode.Open, FileAccess.ReadWrite);
@@ -74,24 +71,18 @@ namespace Api.Controllers
         }
 
         // Delete multiple files
-        [Route("{username}/files")]
-        [HttpDelete]
+        [Route("{username}/delete-multiple")]
+        [HttpPost]
         public IActionResult Delete([FromRoute] string username, [FromBody] List<SimpleNodeDto> nodes)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest();
-            }
 
             if (nodes.Count <= 0)
-            {
                 return BadRequest("Requested list of files and directories to be deleted, must not be empty.");
-            }
 
             if (!TryBatchDelete(username, nodes))
-            {
                 return BadRequest("Error while trying to delete files - check passed list of files or dirs.");
-            }
 
             var appId = Request.Headers["AppId"];
             var phonenumber = Request.Headers["OwnerPhoneNumber"];
@@ -106,9 +97,7 @@ namespace Api.Controllers
         public IActionResult DeleteFile([FromRoute] string username, [FromRoute] string filePath)
         {
             if (String.IsNullOrWhiteSpace(filePath))
-            {
                 return BadRequest();
-            }
 
             string physicalPath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, filePath));
             var appId = Request.Headers["AppId"];
@@ -130,13 +119,11 @@ namespace Api.Controllers
         }
 
         // TOODO - Add restful Directory endpoints, for uploading files within a specific directory
-
-
         // TODO - DONE: read a json string from byte[] into a string and write as a .txt file (System.IO.Write)
         //      - DONE: write a picture or document as byte[] into a file (System.IO.Write)
         //      - DONE: convert the receiving stream into another stream and write into a file, instead of loading the entire byte[] into memory
         //      - check memory usage for above scenarios and: MultipartForm, IFormFile, Request.Body.ReadAsync (stream)
-        //      - handle multiple files
+        //      - DONE: multiple files
         //      - check MultipartForm
         //      - check axios:stream
 
@@ -299,24 +286,16 @@ namespace Api.Controllers
                     if (node.NodeType == "File")
                     {
                         if (System.IO.File.Exists(physicalPath))
-                        {
                             System.IO.File.Delete(physicalPath);
-                        }
                         else
-                        {
                             return false;
-                        }
                     }
                     else if (node.NodeType == "Directory")
                     {
                         if (System.IO.Directory.Exists(physicalPath))
-                        {
                             System.IO.Directory.Delete(physicalPath, true);
-                        }
                         else
-                        {
                             return false;
-                        }
                     }
                     else
                     {

@@ -24,20 +24,16 @@ namespace Api.Controllers
             appEnv = hostingEnvironment;
         }
 
-        // POST: eldarja/directories/?dir1/dir2/mydir/mysubdir...
-        //  -- Note: directoryPath does NOT include the name of directory to be created
-        [Route("{username}/directories/{*directoryPath}")]
+        [Route("{username}/directories")]
         [HttpPost]
-        public IActionResult CreateDirectory([FromRoute] string username, [FromRoute] string directoryPath, [FromBody] DirectoryDto directoryDto)
+        public IActionResult CreateDirectory([FromRoute] string username, [FromBody] DirectoryDto directoryDto)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest();
-            }
 
             // TODO: Check for what is 'Path' used and introduce new property 'Url'
             string physicalPath;
-            if (String.IsNullOrWhiteSpace(directoryPath))
+            if (String.IsNullOrWhiteSpace(directoryDto.Path))
             {
                 physicalPath = Path.Combine(appEnv.WebRootPath,
                     String.Format(@"dataspace/{0}/{1}", username, directoryDto.Name)); // TODO FIX THIS AND ADD URL FIELD TO DTO MODEL
@@ -47,9 +43,9 @@ namespace Api.Controllers
             else
             {
                 physicalPath = Path.Combine(appEnv.WebRootPath,
-                    String.Format(@"dataspace/{0}/{1}/{2}", username, directoryPath, directoryDto.Name));
-                directoryDto.Url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/directories/{directoryPath}/{directoryDto.Name}";
-                directoryDto.Path = directoryPath;
+                    String.Format(@"dataspace/{0}/{1}/{2}", username, directoryDto.Path, directoryDto.Name));
+                directoryDto.Url = $"{Request.Scheme}://{Request.Host}/dataspace/{username}/directories/{directoryDto.Path}/{directoryDto.Name}";
+                directoryDto.Path = directoryDto.Path;
             }
 
 
@@ -57,9 +53,7 @@ namespace Api.Controllers
             var phonenumber = Request.Headers["OwnerPhoneNumber"]; // Remove this and use Authentication and User obj.
 
             if (System.IO.Directory.Exists(directoryDto.Path + '/' + directoryDto.Name))
-            {
                 return BadRequest();
-            }
 
             System.IO.Directory.CreateDirectory(physicalPath);
 
@@ -76,9 +70,7 @@ namespace Api.Controllers
         public IActionResult DeleteDirectory([FromRoute] string username, [FromRoute] string directoryPath)
         {
             if (String.IsNullOrWhiteSpace(directoryPath))
-            {
                 return BadRequest();
-            }
 
             string physicalPath = Path.Combine(appEnv.WebRootPath, String.Format(@"dataspace/{0}/{1}", username, directoryPath));
             var appId = Request.Headers["AppId"];
